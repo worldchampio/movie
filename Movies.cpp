@@ -46,11 +46,16 @@ Movies::Movies()
     for(int i=0; i<menuItems.size(); i++)
         mvprintw(i+2,4,menuItems[i]);
 
-    mvprintw(LINES-5,4,"d       - select");
-    mvprintw(LINES-4,4,"a       - back");
-    mvprintw(LINES-3,4,"q       - quit");
-    mvprintw(LINES-2,4,"w,a     - up,down");
+    const std::vector helpItems{
+        "D       - select",
+        "A       - back",
+        "Q       - quit",
+        "W,S     - up,down"
+    };
 
+    for(int i=0; i<helpItems.size(); i++)
+        mvprintw(LINES-i-2,4,helpItems[i]);
+    
     char c{'\0'};
     int pos = 0;
     mvprintw(pos+2,2,">");
@@ -129,6 +134,8 @@ std::string Movies::getStrInput(WINDOW* win, int y, int x)
         box(win,0,0);
         wrefresh(win);
     }
+    if(str.back()=='\n')
+        str.pop_back();
     return str;
 }
 
@@ -164,34 +171,11 @@ void Movies::browse(){
         mvwprintw(w,pos,0," ");
         switch (c)
         {
-        case 's':
-        case 'S':
-        case KEY_DOWN:
-        {
-            pos++;
-            break;   
-        }     
-        case 'w':
-        case 'W':
-        case KEY_UP:
-        {    
-            pos--;
-            break;
-        }
-        case 'd':
-        case 'D':
-        {
-            pos+=10;
-            break;
-        }
-        case 'a':
-        case 'A':
-        {
-            pos-=10;
-            break;
-        }
-        default:
-            return;
+        case 's': case 'S': case KEY_DOWN: { pos++; break; }     
+        case 'w': case 'W': case KEY_UP: { pos--; break; }
+        case 'd': case 'D': { pos+=10; break; }
+        case 'a': case 'A': { pos-=10; break; }
+        default : return;
         }
         if(pos < 1)
         {
@@ -271,7 +255,6 @@ void Movies::search()
     box(w,0,0);
     wrefresh(w);
     auto searchInput = getStrInput(w,3,2);
-    searchInput.pop_back();
     std::optional<Movie> movieOpt;
     for(const auto& movie : movies)
         if(stringEquals(movie.name,searchInput))
