@@ -17,7 +17,6 @@ namespace
     constexpr auto YELLOW{2};
     constexpr auto RED{3};
     constexpr auto GREEN{4};
-    
 }
 
 Movies::Movies()
@@ -260,19 +259,20 @@ void Movies::search()
         if(stringEquals(movie.name,searchInput))
             moviesFound.push_back(movie);
     if(!moviesFound.empty())
-    {    
-        mvwprintw(w,4,2,(moviesFound.size() > 1) ? "Found movies:" : "Found movie:");
+    {   
+        const std::string movieText{moviesFound.size() > 1 ? "Found "+std::to_string(moviesFound.size())+" movies:" : "Found movie:"};
+        mvwprintw(w,4,2,movieText.c_str());
         int y{5};
         for(const auto& movie : moviesFound)
         {
+            if(y>=14)
+                continue;
             std::stringstream ss;
             ss  << movie.name << " ("
                 << movie.year << ") - " 
                 << movie.rating;
             mvwprintw(w,y,2,ss.str().c_str());
             y++;
-            if(y>14)
-                continue;
         }
     } else {
         mvwprintw(w,4,2,"No matches.");
