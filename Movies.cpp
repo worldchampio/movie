@@ -249,26 +249,33 @@ bool Movies::stringEquals(std::string a, std::string b)
 
 void Movies::search()
 {
-    auto w = newwin(10,70,2,21);
+    auto w = newwin(15,70,2,21);
     wattron(w,COLOR_PAIR(RED));
-    mvwprintw(w,2,2,"Search: ");
+    mvwprintw(w,1,2,"Search: ");
     box(w,0,0);
     wrefresh(w);
-    auto searchInput = getStrInput(w,3,2);
-    std::optional<Movie> movieOpt;
+    auto searchInput = getStrInput(w,2,2);
+    std::vector<Movie> moviesFound;
     for(const auto& movie : movies)
         if(stringEquals(movie.name,searchInput))
-            movieOpt = movie;
-    if(movieOpt.has_value())
+            moviesFound.push_back(movie);
+    if(!moviesFound.empty())
     {    
-        mvwprintw(w,5,2,"Found movie:");
-        std::stringstream ss;
-        ss  << movieOpt.value().name << " ("
-            << movieOpt.value().year << ") - " 
-            << movieOpt.value().rating;
-        mvwprintw(w,6,2,ss.str().c_str());
+        mvwprintw(w,4,2,(moviesFound.size() > 1) ? "Found movies:" : "Found movie:");
+        int y{5};
+        for(const auto& movie : moviesFound)
+        {
+            std::stringstream ss;
+            ss  << movie.name << " ("
+                << movie.year << ") - " 
+                << movie.rating;
+            mvwprintw(w,y,2,ss.str().c_str());
+            y++;
+            if(y>14)
+                continue;
+        }
     } else {
-        mvwprintw(w,5,2,"No matches.");
+        mvwprintw(w,4,2,"No matches.");
     }
     wrefresh(w);
     getch();
