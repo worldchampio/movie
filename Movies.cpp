@@ -281,22 +281,22 @@ void Movies::search()
     getch();
 }
 
-void Movies::rateMovies()
-{
+std::pair<Movies::Movie,Movies::Movie> Movies::getTwoRandomMovies(){
     const auto firstRng{rng(0,movies.size()-1)};    
     int secondRng{firstRng};
     while(secondRng==firstRng)
         secondRng=rng(0,movies.size()-1);
     
-    const auto firstMovie{movies[firstRng]};
-    const auto secondMovie{movies[secondRng]};
-    const auto xAlign{10};
+    return {movies[firstRng],movies[secondRng]};
+}
 
+void Movies::rateMovies()
+{
+    const auto[firstMovie,secondMovie]{getTwoRandomMovies()};
     std::stringstream ssFirst, ssSecond;
-
     ssFirst << firstMovie.name << " ("<<firstMovie.year<<") - " << firstMovie.rating;
     ssSecond << secondMovie.name << " ("<<secondMovie.year<<") - " << secondMovie.rating;
-
+    const auto xAlign{10};
     const auto width{xAlign+std::max(ssFirst.str().size(),ssSecond.str().size())+2};
     auto w1 = newwin(3,width,2,21);
     auto w2 = newwin(3,width,6,21);
@@ -306,37 +306,51 @@ void Movies::rateMovies()
 
     mvwprintw(w1,1,2,"FIRST:");
     mvwprintw(w1,1,xAlign,ssFirst.str().c_str());
-    
     mvwprintw(w2,1,2,"SECOND:");
     mvwprintw(w2,1,xAlign,ssSecond.str().c_str());
-    
     box(w1,0,0);
     box(w2,0,0);
     wrefresh(w1);
     wrefresh(w2);
-
-    char c {'\0'};
-    while(c!='q')
+    std::optional<bool> selection;
+    char c{'\0'};
+    int ratings{0};
+    while(ratings <10)
     {
         c = getch();
         switch (c)
         {
-        case 'w':
-        case 'W':
+        case 'w': case 'W':
         {
             wattron(w1,A_STANDOUT);
             wattroff(w2,A_STANDOUT);
             box(w1,0,0);
             box(w2,0,0);
+            selection = true;
             break;
         }
-        case 's':
-        case 'S':
+        case 's': case 'S':
         {            
             wattroff(w1,A_STANDOUT);
             wattron(w2,A_STANDOUT);
             box(w1,0,0);
             box(w2,0,0);
+            selection = false;
+            break;
+        }
+        case 'd': case 'D':
+        {
+            if(selection.has_value()){
+                ++ratings;
+                const auto victory{selection.value()};
+                const auto[newRating1,newRating2]{computeElo(firstMovie.rating,secondMovie.rating,victory )};
+                const auto diff1{newRating1-firstMovie.rating};
+                const auto diff2{newRating2-secondMovie.rating};
+                mvwprintw(w1,0,width-4,std::to_string(static_cast<int>(diff1)).c_str());
+                mvwprintw(w2,0,width-4,std::to_string(static_cast<int>(diff2)).c_str());
+                wrefresh(w1);
+                wrefresh(w2);
+            }
             break;
         }
         default:
@@ -376,6 +390,16 @@ std::string Movies::serialize(const Movie& movie)
        << movie.name  << ","
        << movie.year  << std::endl;
     return ss.str();
+}
+
+std::pair<double,double> Movies::computeElo(double Ra, double Rb, bool score)
+{
+    constexpr auto K{32};
+    const auto Ea = 1/( 1 + pow(10,(Rb-Ra)/400)); 
+    const auto Eb = 1/( 1 + pow(10,(Ra-Rb)/400));
+    const auto Ra_ = Ra + K * (score - Ea);
+    const auto Rb_ = Rb + K * (!score - Eb);
+    return { Ra_,Rb_ };
 }
 
 int Movies::rng(int min, int max) 
