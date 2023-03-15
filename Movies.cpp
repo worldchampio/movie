@@ -291,26 +291,60 @@ void Movies::rateMovies()
     const auto firstMovie{movies[firstRng]};
     const auto secondMovie{movies[secondRng]};
     const auto xAlign{10};
-                //  H  W
-    
+
     std::stringstream ssFirst, ssSecond;
+
     ssFirst << firstMovie.name << " ("<<firstMovie.year<<") - " << firstMovie.rating;
     ssSecond << secondMovie.name << " ("<<secondMovie.year<<") - " << secondMovie.rating;
-    
-    auto w = newwin(7,xAlign+std::max(ssFirst.str().size(),ssSecond.str().size())+2,2,21);
-    wattron(w,COLOR_PAIR(GREEN));
-    mvwprintw(w,1,2,"FIRST:");
-    mvwprintw(w,1,xAlign,ssFirst.str().c_str());
-    
-    mvwprintw(w,2,2,"SECOND:");
-    mvwprintw(w,2,xAlign,ssSecond.str().c_str());
 
-    mvwprintw(w,4,2,"FIRST");
-    mvwprintw(w,4,xAlign,"SECOND");
+    const auto width{xAlign+std::max(ssFirst.str().size(),ssSecond.str().size())+2};
+    auto w1 = newwin(3,width,2,21);
+    auto w2 = newwin(3,width,6,21);
+
+    wattron(w1,COLOR_PAIR(CYAN));
+    wattron(w2,COLOR_PAIR(CYAN));
+
+    mvwprintw(w1,1,2,"FIRST:");
+    mvwprintw(w1,1,xAlign,ssFirst.str().c_str());
     
-    box(w,0,0);
-    wrefresh(w);
-    getch();
+    mvwprintw(w2,1,2,"SECOND:");
+    mvwprintw(w2,1,xAlign,ssSecond.str().c_str());
+    
+    box(w1,0,0);
+    box(w2,0,0);
+    wrefresh(w1);
+    wrefresh(w2);
+
+    char c {'\0'};
+    while(c!='q')
+    {
+        c = getch();
+        switch (c)
+        {
+        case 'w':
+        case 'W':
+        {
+            wattron(w1,A_STANDOUT);
+            wattroff(w2,A_STANDOUT);
+            box(w1,0,0);
+            box(w2,0,0);
+            break;
+        }
+        case 's':
+        case 'S':
+        {            
+            wattroff(w1,A_STANDOUT);
+            wattron(w2,A_STANDOUT);
+            box(w1,0,0);
+            box(w2,0,0);
+            break;
+        }
+        default:
+            break;
+        }
+        wrefresh(w1);
+        wrefresh(w2);
+    }
 }
 
 void Movies::loadMovies()
