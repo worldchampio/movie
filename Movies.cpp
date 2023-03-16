@@ -142,10 +142,10 @@ void Movies::recommend()
         }
 
     std::stringstream randomSS, highestSS, diffSS;
-    randomSS << "Random:  " << randomMovie.name << " (" << randomMovie.year << ") - " << randomMovie.rating;
+    randomSS << "RANDOM:  " << randomMovie.name << " (" << randomMovie.year << ") - " << randomMovie.rating;
     if(!ratedMovies.empty())
-        diffSS << "Hottest: "   << highestDiffMovie.name << " (" << highestDiffMovie.year << ") - " << highestDiffMovie.rating << " " << diff;
-    highestSS<< "Highest: " << highestRatedMovie.name << " (" << highestRatedMovie.year << ") - " << highestRatedMovie.rating;
+        diffSS << "HOTTEST: "   << highestDiffMovie.name << " (" << highestDiffMovie.year << ") - " << highestDiffMovie.rating << " " << diff;
+    highestSS<< "HIGHEST: " << highestRatedMovie.name << " (" << highestRatedMovie.year << ") - " << highestRatedMovie.rating;
 
     auto width = std::max(randomSS.str().size(),highestSS.str().size());
     width = std::max(width,diffSS.str().size())+4;
@@ -257,6 +257,7 @@ void Movies::addMovie(){
         movie.name.pop_back();
     movie.year = std::atoi(getStrInput(w,2,7).c_str());
     const auto validYear{movie.year > 1900 && movie.year < 2024};
+    movie.rating = 1000;
     if(validYear)
         movies.push_back(movie);
     else
