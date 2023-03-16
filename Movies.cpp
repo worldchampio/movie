@@ -88,7 +88,7 @@ Movies::Movies()
                 switch(pos)
                 {
                     case 0: { addMovie(); break; }
-                    case 1: { for(int i=0; i<10; i++) rateMovies(i); break; }
+                    case 1: { for(int i=0; i<10; i++) rateMovies(); break; }
                     case 2: { search(); break; }
                     case 3: { browse(); break; }
                     case 4: { recommend(); break; }
@@ -147,8 +147,8 @@ void Movies::recommend()
         diffSS << "Hottest: "   << highestDiffMovie.name << " (" << highestDiffMovie.year << ") - " << highestDiffMovie.rating << " " << diff;
     highestSS<< "Highest: " << highestRatedMovie.name << " (" << highestRatedMovie.year << ") - " << highestRatedMovie.rating;
 
-    auto width = std::max(randomSS.str().size(),highestSS.str().size())+4;
-    width = std::max(width,diffSS.str().size());
+    auto width = std::max(randomSS.str().size(),highestSS.str().size());
+    width = std::max(width,diffSS.str().size())+4;
     auto w = newwin(5,width,2,21);
     wattron(w,COLOR_PAIR(MAGENTA));
     mvwprintw(w,1,2,randomSS.str().c_str());
@@ -156,6 +156,7 @@ void Movies::recommend()
     mvwprintw(w,3,2,highestSS.str().c_str());
     box(w,0,0);
     mvwprintw(w,0,2,"RECOMMENDATION");
+    mvwprintw(w,3,1," ");
     wrefresh(w);
     getch();
 }
@@ -327,7 +328,7 @@ std::pair<int,int> Movies::getTwoRngs(){
     return {firstRng, secondRng};
 }
 
-void Movies::rateMovies(int i)
+void Movies::rateMovies()
 {
     const auto[firstNumber,secondNumber]{getTwoRngs()};
     const auto firstMovie{movies[firstNumber]};
@@ -348,7 +349,6 @@ void Movies::rateMovies(int i)
     mvwprintw(w2,1,2,"SECOND:");
     mvwprintw(w2,1,xAlign,ssSecond.str().c_str());
     box(w1,0,0);
-    mvwprintw(w1,0,2,std::to_string(10-i).c_str());
     box(w2,0,0);
     wrefresh(w1);
     wrefresh(w2);

@@ -17,7 +17,7 @@ public:
     };
 
     void addMovie();
-    void rateMovies(int i);
+    void rateMovies();
     void loadMovies();
     void browse();
     void recommend();
