@@ -132,14 +132,27 @@ void Movies::recommend()
             rating = movie.rating;
         }
 
-    std::stringstream randomSS, highestSS;
-    randomSS << "Random:  " << randomMovie.name << " (" << randomMovie.year << ") - " << randomMovie.rating; 
+    Movie highestDiffMovie;
+    double diff{0};
+    for(const auto& movieIndex : ratedMovies)
+        if(movieIndex.second > diff)
+        {    
+            highestDiffMovie = movies[movieIndex.first];
+            diff = movieIndex.second;
+        }
+
+    std::stringstream randomSS, highestSS, diffSS;
+    randomSS << "Random:  " << randomMovie.name << " (" << randomMovie.year << ") - " << randomMovie.rating;
+    if(!ratedMovies.empty())
+        diffSS << "Hottest: "   << highestDiffMovie.name << " (" << highestDiffMovie.year << ") - " << highestDiffMovie.rating << " " << diff;
     highestSS<< "Highest: " << highestRatedMovie.name << " (" << highestRatedMovie.year << ") - " << highestRatedMovie.rating;
 
-    const auto width = std::max(randomSS.str().size(),highestSS.str().size())+4;
+    auto width = std::max(randomSS.str().size(),highestSS.str().size())+4;
+    width = std::max(width,diffSS.str().size());
     auto w = newwin(5,width,2,21);
     wattron(w,COLOR_PAIR(MAGENTA));
     mvwprintw(w,1,2,randomSS.str().c_str());
+    mvwprintw(w,2,2,diffSS.str().c_str());
     mvwprintw(w,3,2,highestSS.str().c_str());
     box(w,0,0);
     mvwprintw(w,0,2,"RECOMMENDATION");
@@ -371,6 +384,10 @@ void Movies::rateMovies(int i)
                 const auto[newRating1,newRating2]{computeElo(firstMovie.rating,secondMovie.rating,victory )};
                 const auto diff1{newRating1-firstMovie.rating};
                 const auto diff2{newRating2-secondMovie.rating};
+
+                ratedMovies[firstNumber] += diff1;
+                ratedMovies[secondNumber] += diff2;
+
                 movies[firstNumber].rating = newRating1;
                 movies[secondNumber].rating = newRating2;
                 mvwprintw(w1,0,width-4,std::to_string(static_cast<int>(diff1)).c_str());
