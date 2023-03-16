@@ -122,13 +122,25 @@ Movies::~Movies()
 
 void Movies::recommend()
 {
-    const auto mov{ movies[rng(0,movies.size()-1)] };
-    std::stringstream ss;
-    ss << mov.name << " " << "("<<mov.year<<") - "<< mov.rating; 
-    const auto width = ss.str().size()+4;
-    auto w = newwin(3,width,2,21);
+    const auto randomMovie{ movies[rng(0,movies.size()-1)] };
+    Movie highestRatedMovie;
+    double rating{0};
+    for(const auto& movie : movies)
+        if(movie.rating > rating)
+        {    
+            highestRatedMovie = movie;
+            rating = movie.rating;
+        }
+
+    std::stringstream randomSS, highestSS;
+    randomSS << "Random:  " << randomMovie.name << " (" << randomMovie.year << ") - " << randomMovie.rating; 
+    highestSS<< "Highest: " << highestRatedMovie.name << " (" << highestRatedMovie.year << ") - " << highestRatedMovie.rating;
+
+    const auto width = std::max(randomSS.str().size(),highestSS.str().size())+4;
+    auto w = newwin(5,width,2,21);
     wattron(w,COLOR_PAIR(MAGENTA));
-    mvwprintw(w,1,2,ss.str().c_str());
+    mvwprintw(w,1,2,randomSS.str().c_str());
+    mvwprintw(w,3,2,highestSS.str().c_str());
     box(w,0,0);
     mvwprintw(w,0,2,"RECOMMENDATION");
     wrefresh(w);
