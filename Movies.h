@@ -18,6 +18,7 @@ public:
     void rateMovies(int i);
     void loadMovies();
     void browse();
+    void recommend();
     void search();
     std::string getStrInput(WINDOW* win, int y, int x);
     std::pair<int,int> getTwoRngs();

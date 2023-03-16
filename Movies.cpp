@@ -17,6 +17,7 @@ namespace
     constexpr auto YELLOW{2};
     constexpr auto RED{3};
     constexpr auto GREEN{4};
+    constexpr auto MAGENTA{5};
 }
 
 Movies::Movies()
@@ -31,6 +32,7 @@ Movies::Movies()
     init_pair(YELLOW,COLOR_YELLOW,COLOR_BLACK);
     init_pair(RED,COLOR_RED,COLOR_BLACK);
     init_pair(GREEN,COLOR_GREEN,COLOR_BLACK);
+    init_pair(MAGENTA,COLOR_MAGENTA,COLOR_BLACK);
     attron(COLOR_PAIR(1));
 
     box(stdscr,0,0);
@@ -39,6 +41,7 @@ Movies::Movies()
         "Rate two movies",
         "Search for movie",
         "Browse",
+        "Recommend",
         "Exit",
     };
 
@@ -88,14 +91,15 @@ Movies::Movies()
                     case 1: { for(int i=0; i<10; i++) rateMovies(i); break; }
                     case 2: { search(); break; }
                     case 3: { browse(); break; }
-                    case 4: return;
+                    case 4: { recommend(); break; }
+                    case 5: return;
                     default: break;
                 }
         }
-        if(pos > 4)
+        if(pos > 5)
             pos = 0;
         if(pos < 0)
-            pos = 4;
+            pos = 5;
         mvprintw(pos+2,2,"*");
         mvchgat(pos+2,2,1,A_STANDOUT,COLOR_PAIR(1),nullptr);
         box(stdscr,0,0);
@@ -114,6 +118,21 @@ Movies::~Movies()
     moviefile.close();
 
     endwin();
+}
+
+void Movies::recommend()
+{
+    const auto mov{ movies[rng(0,movies.size()-1)] };
+    std::stringstream ss;
+    ss << mov.name << " " << "("<<mov.year<<") - "<< mov.rating; 
+    const auto width = ss.str().size()+4;
+    auto w = newwin(3,width,2,21);
+    wattron(w,COLOR_PAIR(MAGENTA));
+    mvwprintw(w,1,2,ss.str().c_str());
+    box(w,0,0);
+    mvwprintw(w,0,2,"RECOMMENDATION");
+    wrefresh(w);
+    getch();
 }
 
 std::string Movies::getStrInput(WINDOW* win, int y, int x)
@@ -340,13 +359,14 @@ void Movies::rateMovies(int i)
                 const auto[newRating1,newRating2]{computeElo(firstMovie.rating,secondMovie.rating,victory )};
                 const auto diff1{newRating1-firstMovie.rating};
                 const auto diff2{newRating2-secondMovie.rating};
+                movies[firstNumber].rating = newRating1;
+                movies[secondNumber].rating = newRating2;
                 mvwprintw(w1,0,width-4,std::to_string(static_cast<int>(diff1)).c_str());
                 mvwprintw(w2,0,width-4,std::to_string(static_cast<int>(diff2)).c_str());
                 wrefresh(w1);
                 wrefresh(w2);
-                return;
             }
-            break;
+            return;
         }
         default:
             break;
