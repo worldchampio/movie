@@ -15,12 +15,12 @@ public:
     };
 
     void addMovie();
-    void rateMovies();
+    void rateMovies(int i);
     void loadMovies();
     void browse();
     void search();
     std::string getStrInput(WINDOW* win, int y, int x);
-    std::pair<Movie,Movie> getTwoRandomMovies();
+    std::pair<int,int> getTwoRngs();
     std::pair<double,double> computeElo(double Ra, double Rb, bool score);
 private:
     bool stringEquals(std::string a, std::string b);

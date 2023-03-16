@@ -85,7 +85,7 @@ Movies::Movies()
                 switch(pos)
                 {
                     case 0: { addMovie(); break; }
-                    case 1: { rateMovies(); break; }
+                    case 1: { for(int i=0; i<10; i++) rateMovies(i); break; }
                     case 2: { search(); break; }
                     case 3: { browse(); break; }
                     case 4: return;
@@ -203,7 +203,6 @@ void Movies::addMovie(){
     wattron(w,COLOR_PAIR(RED));
     mvwprintw(w,1,1,"Name:");
     mvwprintw(w,2,1,"Year:");
-    mvwprintw(w,3,1,"Rate:");
     box(w,0,0);
     wrefresh(w);
 
@@ -212,19 +211,13 @@ void Movies::addMovie(){
     if(movie.name.back()=='\n')
         movie.name.pop_back();
     movie.year = std::atoi(getStrInput(w,2,7).c_str());
-    movie.rating = std::atof(getStrInput(w,3,7).c_str());
     const auto validYear{movie.year > 1900 && movie.year < 2024};
-    const auto validRating{movie.rating > 0 && movie.rating <= 10};
-    if(validYear && validRating)
+    if(validYear)
         movies.push_back(movie);
     else
     {
         mvwprintw(w,5,1,"Movie was not added.");
-        if(!validYear)
-            mvwprintw(w,6,1,"Invalid year.");
-        if(!validRating)
-            mvwprintw(w,7,1,"Invalid rating.");
-
+        mvwprintw(w,6,1,"Invalid year.");
         wrefresh(w);
         getch();   
     }
@@ -281,18 +274,20 @@ void Movies::search()
     getch();
 }
 
-std::pair<Movies::Movie,Movies::Movie> Movies::getTwoRandomMovies(){
+std::pair<int,int> Movies::getTwoRngs(){
     const auto firstRng{rng(0,movies.size()-1)};    
     int secondRng{firstRng};
     while(secondRng==firstRng)
         secondRng=rng(0,movies.size()-1);
     
-    return {movies[firstRng],movies[secondRng]};
+    return {firstRng, secondRng};
 }
 
-void Movies::rateMovies()
+void Movies::rateMovies(int i)
 {
-    const auto[firstMovie,secondMovie]{getTwoRandomMovies()};
+    const auto[firstNumber,secondNumber]{getTwoRngs()};
+    const auto firstMovie{movies[firstNumber]};
+    const auto secondMovie{movies[secondNumber]};
     std::stringstream ssFirst, ssSecond;
     ssFirst << firstMovie.name << " ("<<firstMovie.year<<") - " << firstMovie.rating;
     ssSecond << secondMovie.name << " ("<<secondMovie.year<<") - " << secondMovie.rating;
@@ -309,14 +304,14 @@ void Movies::rateMovies()
     mvwprintw(w2,1,2,"SECOND:");
     mvwprintw(w2,1,xAlign,ssSecond.str().c_str());
     box(w1,0,0);
+    mvwprintw(w1,0,2,std::to_string(10-i).c_str());
     box(w2,0,0);
     wrefresh(w1);
     wrefresh(w2);
-    std::optional<bool> selection;
+
     char c{'\0'};
-    int ratings{0};
-    while(ratings <10)
-    {
+    std::optional<bool> selection;
+    while(c!='q'){
         c = getch();
         switch (c)
         {
@@ -341,7 +336,6 @@ void Movies::rateMovies()
         case 'd': case 'D':
         {
             if(selection.has_value()){
-                ++ratings;
                 const auto victory{selection.value()};
                 const auto[newRating1,newRating2]{computeElo(firstMovie.rating,secondMovie.rating,victory )};
                 const auto diff1{newRating1-firstMovie.rating};
@@ -350,6 +344,7 @@ void Movies::rateMovies()
                 mvwprintw(w2,0,width-4,std::to_string(static_cast<int>(diff2)).c_str());
                 wrefresh(w1);
                 wrefresh(w2);
+                return;
             }
             break;
         }
