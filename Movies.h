@@ -34,4 +34,5 @@ private:
     std::fstream moviefile;
     std::vector<Movie> movies;
     std::unordered_map<int,double> ratedMovies;
+    int globalWidth{90};
 };

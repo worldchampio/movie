@@ -88,11 +88,16 @@ Movies::Movies()
                 switch(pos)
                 {
                     case 0: { addMovie(); break; }
-                    case 1: { for(int i=0; i<10; i++) rateMovies(); break; }
+                    case 1: 
+                    { 
+                        for(int i=0; i<10; i++) 
+                            rateMovies(); 
+                        break;
+                    }
                     case 2: { search(); break; }
                     case 3: { browse(); break; }
                     case 4: { recommend(); break; }
-                    case 5: return;
+                    case 5: { endwin(); return; }
                     default: break;
                 }
         }
@@ -147,9 +152,7 @@ void Movies::recommend()
         diffSS << "HOTTEST: "   << highestDiffMovie.name << " (" << highestDiffMovie.year << ") - " << highestDiffMovie.rating << " " << diff;
     highestSS<< "HIGHEST: " << highestRatedMovie.name << " (" << highestRatedMovie.year << ") - " << highestRatedMovie.rating;
 
-    auto width = std::max(randomSS.str().size(),highestSS.str().size());
-    width = std::max(width,diffSS.str().size())+4;
-    auto w = newwin(5,width,2,21);
+    auto w = newwin(5,globalWidth,2,21);
     wattron(w,COLOR_PAIR(MAGENTA));
     mvwprintw(w,1,2,randomSS.str().c_str());
     mvwprintw(w,2,2,diffSS.str().c_str());
@@ -335,30 +338,25 @@ void Movies::rateMovies()
     const auto firstMovie{movies[firstNumber]};
     const auto secondMovie{movies[secondNumber]};
     std::stringstream ssFirst, ssSecond;
-    ssFirst << firstMovie.name << " ("<<firstMovie.year<<") - " << firstMovie.rating;
-    ssSecond << secondMovie.name << " ("<<secondMovie.year<<") - " << secondMovie.rating;
-    const auto xAlign{10};
-    const auto width{xAlign+std::max(ssFirst.str().size(),ssSecond.str().size())+2};
-    auto w1 = newwin(3,width,2,21);
-    auto w2 = newwin(3,width,6,21);
+    ssFirst << "FIRST: " << firstMovie.name << " ("<<firstMovie.year<<") - " << firstMovie.rating;
+    ssSecond << "SECOND: " << secondMovie.name << " ("<<secondMovie.year<<") - " << secondMovie.rating;
+    auto w1 = newwin(4,globalWidth,2,21);
+    auto w2 = newwin(4,globalWidth,7,21);
 
     wattron(w1,COLOR_PAIR(CYAN));
     wattron(w2,COLOR_PAIR(CYAN));
-
-    mvwprintw(w1,1,2,"FIRST:");
-    mvwprintw(w1,1,xAlign,ssFirst.str().c_str());
-    mvwprintw(w2,1,2,"SECOND:");
-    mvwprintw(w2,1,xAlign,ssSecond.str().c_str());
+    mvwprintw(w1,1,2,ssFirst.str().c_str());
+    mvwprintw(w2,1,2,ssSecond.str().c_str());
     box(w1,0,0);
     box(w2,0,0);
     wrefresh(w1);
     wrefresh(w2);
 
-    char c{'\0'};
     std::optional<bool> selection;
-    while(c!='q'){
-        c = getch();
-        switch (c)
+    std::optional<std::pair<double,double>> newRatings;
+    bool loop{true};
+    while(loop){
+        switch (getch())
         {
         case 'w': case 'W':
         {
@@ -380,27 +378,35 @@ void Movies::rateMovies()
         }
         case 'd': case 'D':
         {
-            if(selection.has_value()){
-                const auto victory{selection.value()};
-                const auto[newRating1,newRating2]{computeElo(firstMovie.rating,secondMovie.rating,victory )};
-                const auto diff1{newRating1-firstMovie.rating};
-                const auto diff2{newRating2-secondMovie.rating};
-
-                ratedMovies[firstNumber] += diff1;
-                ratedMovies[secondNumber] += diff2;
-
-                movies[firstNumber].rating = newRating1;
-                movies[secondNumber].rating = newRating2;
-                mvwprintw(w1,0,width-4,std::to_string(static_cast<int>(diff1)).c_str());
-                mvwprintw(w2,0,width-4,std::to_string(static_cast<int>(diff2)).c_str());
-                wrefresh(w1);
-                wrefresh(w2);
-            }
+            loop = false;
+            wrefresh(w1);
+            wrefresh(w2);
             return;
         }
         default:
             break;
         }
+                   
+        if(selection.has_value()){
+            const auto victory{selection.value()};
+            newRatings = computeElo(firstMovie.rating,secondMovie.rating,victory );
+        }
+
+        if(newRatings.has_value()){
+            const auto diff1{newRatings.value().first-firstMovie.rating};
+            const auto diff2{newRatings.value().second-secondMovie.rating};
+
+            ratedMovies[firstNumber] += diff1;
+            ratedMovies[secondNumber] += diff2;
+
+            movies[firstNumber].rating += diff1;
+            movies[secondNumber].rating += diff2;
+            const auto diff1Str{ "Rating: "+ std::string(diff1 > 0 ? "+":"") + std::to_string(static_cast<int>(diff1)) };
+            const auto diff2Str{ "Rating: "+ std::string(diff2 > 0 ? "+":"") + std::to_string(static_cast<int>(diff2)) };
+            mvwprintw(w1,2,2,diff1Str.c_str());
+            mvwprintw(w2,2,2,diff2Str.c_str());
+        }
+
         wrefresh(w1);
         wrefresh(w2);
     }

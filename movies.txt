@@ -1,252 +1,254 @@
 1000.74,The Shawshank Redemption,1994
 1016,The Godfather,1972
-1015.23,The Godfather: Part II,1974
-1016,Il buono,0
-1045.82,Pulp Fiction,1994
+999.934,The Godfather: Part II,1974
+1002.07,Il buono,0
+1059.97,Pulp Fiction,1994
 1029.84,Inception,2010
-1061.13,Schindler's List,1993
-1029.25,12 Angry Men,1957
-1032,One Flew Over the Cuckoo's Nest,1975
-1032.7,The Dark Knight,2008
-1000,Star Wars: Episode V - The Empire Strikes Back,1980
-1030.53,The Lord of the Rings: The Return of the King,2003
-1000,Shichinin no samurai,1954
-1085.03,Star Wars,1977
+1088.3,Schindler's List,1993
+1013.38,12 Angry Men,1957
+1043.01,One Flew Over the Cuckoo's Nest,1975
+1047.93,The Dark Knight,2008
+1013.87,Star Wars: Episode V - The Empire Strikes Back,1980
+1045.83,The Lord of the Rings: The Return of the King,2003
+985.402,Shichinin no samurai,1954
+1108.88,Star Wars,1977
 1017.44,Goodfellas,1990
 985.436,Casablanca,1942
-999.264,Fight Club,1999
+1012.94,Fight Club,1999
 984,Cidade de Deus,2002
-1016,The Lord of the Rings: The Fellowship of the Ring,2001
+1043.84,The Lord of the Rings: The Fellowship of the Ring,2001
 1000,Rear Window,1954
 1001.4,C'era una volta il West,1968
 1000,Raiders of the Lost Ark,1981
-1000,Toy Story 3,2010
+985.294,Toy Story 3,2010
 1000,Psycho,1960
-984,The Usual Suspects,1995
+1001.47,The Usual Suspects,1995
 1000,The Matrix,1999
-1016.74,The Silence of the Lambs,1991
-1001.44,Se7en,1995
-1016,Memento,2000
+1031.97,The Silence of the Lambs,1991
+1005.71,Se7en,1995
+1014.11,Memento,2000
 1000,It's a Wonderful Life,1946
 1031.26,The Lord of the Rings: The Two Towers,2002
-984,Sunset Blvd.,1950
-1016,Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb,1964
-984,Forrest Gump,1994
-1015.29,Léon,1994
-983.264,Citizen Kane,1941
-1016,Apocalypse Now,1979
-1031.26,North by Northwest,1959
+969.47,Sunset Blvd.,1950
+1034.06,Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb,1964
+1015.97,Forrest Gump,1994
+1001.38,Léon,1994
+953.078,Citizen Kane,1941
+1047.9,Apocalypse Now,1979
+1059,North by Northwest,1959
 1000,American Beauty,1999
 1015.26,American History X,1998
 1032.67,Taxi Driver,1976
-968,Terminator 2: Judgment Day,1991
-1028.16,Saving Private Ryan,1998
-1000,Vertigo,1958
-1000,Le fabuleux destin d'Amélie Poulain,2001
-984,Alien,1979
+936.961,Terminator 2: Judgment Day,1991
+1057.64,Saving Private Ryan,1998
+984.706,Vertigo,1958
+983.464,Le fabuleux destin d'Amélie Poulain,2001
+969.47,Alien,1979
 999.331,WALL·E,2008
 1031.26,Lawrence of Arabia,1962
-984,The Shining,1980
-1000,Sen to Chihiro no kamikakushi,2001
-968.032,Paths of Glory,1957
+991.282,The Shining,1980
+1015.39,Sen to Chihiro no kamikakushi,2001
+941.686,Paths of Glory,1957
 1000,A Clockwork Orange,1971
-984,Double Indemnity,1944
-983.264,To Kill a Mockingbird,1962
-1000,The Pianist,2002
-1000,Das Leben der Anderen,2006
+940.248,Double Indemnity,1944
+965.493,To Kill a Mockingbird,1962
+956.301,The Pianist,2002
+972.136,Das Leben der Anderen,2006
 954.899,The Departed,2006
-1000,M,1931
-984,City Lights,1931
+984.736,M,1931
+968.032,City Lights,1931
 1000,Aliens,1986
-954.899,Eternal Sunshine of the Spotless Mind,2004
-984,Requiem for a Dream,2000
-1000,Das Boot,1981
+991.206,Eternal Sunshine of the Spotless Mind,2004
+999.966,Requiem for a Dream,2000
+990.277,Das Boot,1981
 984.736,The Third Man,1949
-1000,L.A. Confidential,1997
-1000,Reservoir Dogs,1992
-984,Chinatown,1974
+1032.38,L.A. Confidential,1997
+1027.75,Reservoir Dogs,1992
+999.298,Chinatown,1974
 1000,The Treasure of the Sierra Madre,1948
-968.066,Modern Times,1936
-1000,Monty Python and the Holy Grail,1975
+953.532,Modern Times,1936
+1029.25,Monty Python and the Holy Grail,1975
 984,La vita è bella,1997
-1001.44,Back to the Future,1985
-1016,The Prestige,2006
-986.724,El laberinto del fauno,2006
-984,Raging Bull,1980
+1000.67,Back to the Future,1985
+1013.88,The Prestige,2006
+971.335,El laberinto del fauno,2006
+969.558,Raging Bull,1980
 1000,Nuovo Cinema Paradiso,1988
-1000,Singin' in the Rain,1952
+1014.53,Singin' in the Rain,1952
 984,Some Like It Hot,1959
 1014.56,The Bridge on the River Kwai,1957
-984,Rashômon,1950
+968.736,Rashômon,1950
 984,All About Eve,1950
-944.649,Amadeus,1984
-1015.26,Once Upon a Time in America,1984
-1000,The Green Mile,1999
-1017.18,Full Metal Jacket,1987
-1016,Inglourious Basterds,2009
-1031.26,2001: A Space Odyssey,1968
-1000,The Great Dictator,1940
-1000,Braveheart,1995
-1000,Ladri di biciclette,1948
-1000,The Apartment,1960
-1016,Up,2009
-969.434,Der Untergang,2004
-1000,Gran Torino,2008
-984,Metropolis,1927
-1000,The Sting,1973
-1016,Gladiator,2000
+948.08,Amadeus,1984
+1031.26,Once Upon a Time in America,1984
+999.906,The Green Mile,1999
+1032.93,Full Metal Jacket,1987
+1045.19,Inglourious Basterds,2009
+1083.83,2001: A Space Odyssey,1968
+999.264,The Great Dictator,1940
+956.833,Braveheart,1995
+928.862,Ladri di biciclette,1948
+984.736,The Apartment,1960
+1033.16,Up,2009
+955.566,Der Untergang,2004
+1018.11,Gran Torino,2008
+969.503,Metropolis,1927
+968.699,The Sting,1973
+1047.24,Gladiator,2000
 968.736,The Maltese Falcon,1941
 1000,Unforgiven,1992
-1016,Sin City,2005
+1029.87,Sin City,2005
 1016,The Elephant Man,1980
-985.402,Mr. Smith Goes to Washington,1939
-1000,Oldeuboi,2003
+973.273,Mr. Smith Goes to Washington,1939
+985.406,Oldeuboi,2003
 1000,On the Waterfront,1954
-1032,Indiana Jones and the Last Crusade,1989
-1000,Star Wars: Episode VI - Return of the Jedi,1983
+1028.4,Indiana Jones and the Last Crusade,1989
+1032.64,Star Wars: Episode VI - Return of the Jedi,1983
 969.47,Rebecca,1940
-1000,The Great Escape,1963
-1000,Die Hard,1988
-1016.03,Batman Begins,2005
-1016,Mononoke-hime,1997
+983.49,The Great Escape,1963
+999.26,Die Hard,1988
+1030.53,Batman Begins,2005
+1058.34,Mononoke-hime,1997
 1000,Jaws,1975
 984.736,Hotel Rwanda,2004
 954.297,Slumdog Millionaire,2008
-984,Det sjunde inseglet,1957
-1016,Blade Runner,1982
-1032,Fargo,1996
-1029.8,No Country for Old Men,2007
+968.736,Det sjunde inseglet,1957
+1029.17,Blade Runner,1982
+1069.69,Fargo,1996
+1044.43,No Country for Old Men,2007
 1000,Heat,1995
-972.716,The General,1926
-1016,The Wizard of Oz,1939
+960.612,The General,1926
+1000.7,The Wizard of Oz,1939
 969.503,Touch of Evil,1958
-983.298,Per qualche dollaro in più,1965
-1045.13,Ran,1985
-984,Yôjinbô,1961
+1000.07,Per qualche dollaro in più,1965
+1083.29,Ran,1985
+1000.74,Yôjinbô,1961
 1000,District 9,2009
-1016.74,The Sixth Sense,1999
-1000,Snatch.,2000
-1031.26,Donnie Darko,2001
+1000.71,The Sixth Sense,1999
+1004.9,Snatch.,2000
+1045.13,Donnie Darko,2001
 984.637,Annie Hall,1977
-969.47,Witness for the Prosecution,1957
-984,Smultronstället,1957
+954.849,Witness for the Prosecution,1957
+968,Smultronstället,1957
 1000,The Deer Hunter,1978
 1000.74,Avatar,2009
 1029.19,The Social Network,2010
-1000,Cool Hand Luke,1967
+1016.67,Cool Hand Luke,1967
 1000,Strangers on a Train,1951
-1000,High Noon,1952
+985.402,High Noon,1952
 1000,The Big Lebowski,1998
 984,Hotaru no haka,1988
-1031.24,Kill Bill: Vol. 1,2003
-983.264,It Happened One Night,1934
-1000,Platoon,1986
+1059.05,Kill Bill: Vol. 1,2003
+952.892,It Happened One Night,1934
+984.8,Platoon,1986
 1016,The Lion King,1994
-968.034,Into the Wild,2007
-1016,There Will Be Blood,2007
+1001.47,Into the Wild,2007
+1045.19,There Will Be Blood,2007
 984,Notorious,1946
-1000,Million Dollar Baby,2004
-1015.26,Toy Story,1995
-1000,Butch Cassidy and the Sundance Kid,1969
+999.264,Million Dollar Baby,2004
+968.799,Toy Story,1995
+1011.93,Butch Cassidy and the Sundance Kid,1969
 985.436,Gone with the Wind,1939
-982.628,Sunrise: A Song of Two Humans,1927
-984,The Wrestler,2008
-984,The Manchurian Candidate,1962
-1000,Trainspotting,1996
+952.891,Sunrise: A Song of Two Humans,1927
+1030.62,The Wrestler,2008
+1017.4,The Manchurian Candidate,1962
+1015.33,Trainspotting,1996
 1000,Ben-Hur,1959
-1000,Scarface,1983
+1031.24,Scarface,1983
 1000,The Grapes of Wrath,1940
-1045.82,The Graduate,1967
-984,The Big Sleep,1946
-1000,Groundhog Day,1993
-1016,Life of Brian,1979
-969.346,The Gold Rush,1925
+1027.69,The Graduate,1967
+986.14,The Big Sleep,1946
+1002.33,Groundhog Day,1993
+999.264,Life of Brian,1979
+985.352,The Gold Rush,1925
 1029.84,The Bourne Ultimatum,2007
 1000,Amores perros,2000
 1000,Finding Nemo,2003
 1000,The Terminator,1984
-1016,Stand by Me,1986
+999.33,Stand by Me,1986
 1000,How to Train Your Dragon,2010
 1000,The Best Years of Our Lives,1946
 1016,Lock,0
-1016,The Thing,1982
-1000,The Kid,1921
-1016,V for Vendetta,2006
-1000,Casino,1995
-984,Twelve Monkeys,1995
-1000.74,Dog Day Afternoon,1975
-1000,Ratatouille,2007
+1030.5,The Thing,1982
+982.056,The Kid,1921
+1045.13,V for Vendetta,2006
+983.298,Casino,1995
+1000.74,Twelve Monkeys,1995
+1016.71,Dog Day Afternoon,1975
+1028.53,Ratatouille,2007
 984.736,El secreto de sus ojos,2009
 1000,Gandhi,1982
-1000,Star Trek,2009
+970.817,Star Trek,2009
 1000,Ikiru,1952
-954.139,Le salaire de la peur,1953
-1000,Les diaboliques,1955
-984,8½,1963
-1000,The Princess Bride,1987
+946.061,Le salaire de la peur,1953
+982.498,Les diaboliques,1955
+970.816,8½,1963
+983.264,The Princess Bride,1987
 1000,The Night of the Hunter,1955
 1000,Judgment at Nuremberg,1961
-984,The Incredibles,2004
+968.77,The Incredibles,2004
 984,Tonari no Totoro,1988
 999.264,The Hustler,1961
 1044.4,Good Will Hunting,1997
-1000,The Killing,1956
-1000,In Bruges,2008
+1029.07,The Killing,1956
+1031.26,In Bruges,2008
 984,The Wild Bunch,1969
 1016,Network,1976
-1000,Le scaphandre et le papillon,2007
-984.736,A Streetcar Named Desire,1951
-1000,Les quatre cents coups,1959
+970.84,Le scaphandre et le papillon,2007
+986.771,A Streetcar Named Desire,1951
+967.364,Les quatre cents coups,1959
 983.36,La strada,1954
-1000,The Exorcist,1973
-1016,Children of Men,2006
+984,The Exorcist,1973
+1043.65,Children of Men,2006
 984,Stalag 17,1953
-1000,Persona,1966
-970.172,Who's Afraid of Virginia Woolf?,1966
-984,Ed Wood,1994
+984.77,Persona,1966
+955.577,Who's Afraid of Virginia Woolf?,1966
+955.053,Ed Wood,1994
 1015.26,Dial M for Murder,1954
 1000,La battaglia di Algeri,1966
 1000,Låt den rätte komma in,2008
 1000,All Quiet on the Western Front,1930
 984,Big Fish,2003
-1030.56,Magnolia,1999
-1016,Rocky,1976
+996.057,Magnolia,1999
+1031.26,Rocky,1976
 1016,La passion de Jeanne d'Arc,1928
 984,Kind Hearts and Coronets,1949
-984,Fanny och Alexander,1982
+1000.74,Fanny och Alexander,1982
 984.639,Mystic River,2003
-1000,Manhattan,1979
-1016,Barry Lyndon,1975
-1000.74,Kill Bill: Vol. 2,2004
-969.436,Mary and Max,2009
-1000,Patton,1970
-1000,Rosemary's Baby,1968
+956.197,Manhattan,1979
+1073.13,Barry Lyndon,1975
+1016.71,Kill Bill: Vol. 2,2004
+939.153,Mary and Max,2009
+984.034,Patton,1970
+1030.66,Rosemary's Baby,1968
 984.736,Duck Soup,1933
 1030.69,Festen,1998
-1000,Kick-Ass,2010
+983.264,Kick-Ass,2010
 984,Fa yeung nin wa,2000
-1000,Letters from Iwo Jima,2006
-1000,Roman Holiday,1953
-1015.26,Pirates of the Caribbean: The Curse of the Black Pearl,2003
-985.436,Mou gaan dou,2002
-1000,The Truman Show,1998
-968.736,Crash,2004
-968.736,Hauru no ugoku shiro,2004
-1000,His Girl Friday,1940
-984,Arsenic and Old Lace,1944
-968,Harvey,1950
+987.335,Letters from Iwo Jima,2006
+983.231,Roman Holiday,1953
+1031.26,Pirates of the Caribbean: The Curse of the Black Pearl,2003
+970.84,Mou gaan dou,2002
+986.162,The Truman Show,1998
+960.991,Crash,2004
+954.172,Hauru no ugoku shiro,2004
+970.786,His Girl Friday,1940
+968.736,Arsenic and Old Lace,1944
+952.736,Harvey,1950
 1000,Le notti di Cabiria,1957
 1000,Trois couleurs: Rouge,1994
 984.736,The Philadelphia Story,1940
-968.736,A Christmas Story,1983
+954.868,A Christmas Story,1983
 1000,Sleuth,1972
-1016,King Kong,1933
-985.47,Bom yeoreum gaeul gyeoul geurigo bom,2003
+988.401,King Kong,1933
+970.139,Bom yeoreum gaeul gyeoul geurigo bom,2003
 1000,Rope,1948
 1000,Monsters,2001
 1000,Tenkû no shiro Rapyuta,1986
-1000,Yeopgijeogin geunyeo,2001
+983.504,Yeopgijeogin geunyeo,2001
 1000,Mulholland Dr.,2001
 999.264,The Man Who Shot Liberty Valance,1962
-1029.82,Annihilation,2018
+1024.45,Annihilation,2018
 1016,The Good the Bad and The Ugly,1966
+1034,The Conjuring,2013
+1000,The Conjuring 2,2016
