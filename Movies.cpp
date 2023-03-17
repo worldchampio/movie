@@ -326,11 +326,18 @@ void Movies::search()
      for(const auto& movie : movies)
         if(stringEquals(movie.name,str))
             moviesFound.push_back(movie);
+
+    std::string blankSpace;
+    blankSpace.resize(globalWidth-2,' ');
+    for(int i=5; i<15; i++)
+        mvwprintw(w,i,2,blankSpace.c_str());
+
     if(!moviesFound.empty())
     {   
         const std::string movieText{moviesFound.size() > 1 ? "Found "+std::to_string(moviesFound.size())+" movies:" : "Found movie:     "};
         mvwprintw(w,4,2,movieText.c_str());
         int y{5};
+
         for(const auto& movie : moviesFound)
         {
             if(y>=14)
@@ -342,12 +349,9 @@ void Movies::search()
             mvwprintw(w,y,2,ss.str().c_str());
             y++;
         }
-        std::string blankSpace;
-        blankSpace.resize(globalWidth-2,' ');
-        for(int i=y; i<15; i++)
-            mvwprintw(w,i,2,blankSpace.c_str());
-
-    } else {
+    } 
+    else 
+    {
         mvwprintw(w,4,2,"No matches.      ");
     }
     wrefresh(w);
