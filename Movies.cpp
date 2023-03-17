@@ -49,6 +49,7 @@ Movies::Movies()
         mvprintw(i+2,4,menuItems[i]);
 
     const std::vector helpItems{
+        "SHIFT+9 - backspace",
         "D       - select",
         "A       - back",
         "Q       - quit",
@@ -56,7 +57,7 @@ Movies::Movies()
     };
 
     for(int i=0; i<helpItems.size(); i++)
-        mvprintw(LINES-i-2,4,helpItems[i]);
+        mvprintw(LINES-i-3,4,helpItems[i]);
     
     char c{'\0'};
     int pos = 0;
@@ -170,14 +171,19 @@ std::string Movies::getStrInput(WINDOW* win, int y, int x)
     std::string str;
     while(c!='\n')
     {
+        std::string blank;
+        blank.resize(str.size(),' ');
+        mvwprintw(win,y,x,blank.c_str());
         c=getch();
-        if(c == KEY_BACKSPACE)
+        if(c == KEY_BACKSPACE || c==')')
         {
-            str.pop_back();
-            continue;
-        }
-        str+=c;
+            if(!str.empty())
+                str.pop_back();
+        } else
+            str+=c;
+
         mvwprintw(win,y,x,str.c_str());
+        mvwchgat(win,y,x,str.size(),A_BOLD,0,nullptr);
         box(win,0,0);
         wrefresh(win);
     }
@@ -203,7 +209,7 @@ void Movies::browse(){
             ss  << currentMovie.rating << " " 
                 << currentMovie.name <<" ("
                 << currentMovie.year <<")";
-            std::string bigSpace; bigSpace.resize(80,' ');
+            std::string bigSpace; bigSpace.resize(COLS-xStart-4,' ');
             mvwprintw(w,y,2,bigSpace.c_str());
             mvwprintw(w,y,2,ss.str().c_str()); }
     }};
@@ -290,7 +296,7 @@ bool Movies::stringEquals(std::string a, std::string b)
 
 void Movies::search()
 {
-    auto w = newwin(15,70,2,21);
+    auto w = newwin(15,globalWidth,2,21);
     wattron(w,COLOR_PAIR(RED));
     mvwprintw(w,1,2,"Search: ");
     box(w,0,0);
