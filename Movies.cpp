@@ -49,11 +49,11 @@ Movies::Movies()
         mvprintw(i+2,4,menuItems[i]);
 
     const std::vector helpItems{
-        "SHIFT+9 - backspace",
-        "D       - select",
-        "A       - back",
-        "Q       - quit",
-        "W,S     - up,down"
+        "SHIFT+9 - Backspace",
+        "D       - Select",
+        "A       - Back",
+        "Q       - Quit",
+        "W,S     - Up, Down"
     };
 
     for(int i=0; i<helpItems.size(); i++)
@@ -109,6 +109,8 @@ Movies::Movies()
         mvprintw(pos+2,2,"*");
         mvchgat(pos+2,2,1,A_STANDOUT,COLOR_PAIR(1),nullptr);
         box(stdscr,0,0);
+        const std::string sz{std::to_string(COLS)+"x"+std::to_string(LINES)};
+        mvprintw(LINES-1,3,sz.c_str());
         refresh();
         c = getch();
     }
@@ -301,14 +303,32 @@ void Movies::search()
     mvwprintw(w,1,2,"Search: ");
     box(w,0,0);
     wrefresh(w);
-    auto searchInput = getStrInput(w,2,2);
-    std::vector<Movie> moviesFound;
-    for(const auto& movie : movies)
-        if(stringEquals(movie.name,searchInput))
+//////
+  int c{'\0'};
+    std::string str;
+    while(c!='\n')
+    {
+        std::vector<Movie> moviesFound;
+        std::string blank;
+        blank.resize(str.size(),' ');
+        mvwprintw(w,2,2,blank.c_str());
+        c=getch();
+        if(c == KEY_BACKSPACE || c==')')
+        {
+            if(!str.empty())
+                str.pop_back();
+        } else
+            str+=c;
+
+    if(str.back()=='\n')
+        str.pop_back();
+
+     for(const auto& movie : movies)
+        if(stringEquals(movie.name,str))
             moviesFound.push_back(movie);
     if(!moviesFound.empty())
     {   
-        const std::string movieText{moviesFound.size() > 1 ? "Found "+std::to_string(moviesFound.size())+" movies:" : "Found movie:"};
+        const std::string movieText{moviesFound.size() > 1 ? "Found "+std::to_string(moviesFound.size())+" movies:" : "Found movie:     "};
         mvwprintw(w,4,2,movieText.c_str());
         int y{5};
         for(const auto& movie : moviesFound)
@@ -322,11 +342,21 @@ void Movies::search()
             mvwprintw(w,y,2,ss.str().c_str());
             y++;
         }
+        std::string blankSpace;
+        blankSpace.resize(globalWidth-2,' ');
+        for(int i=y; i<15; i++)
+            mvwprintw(w,i,2,blankSpace.c_str());
+
     } else {
-        mvwprintw(w,4,2,"No matches.");
+        mvwprintw(w,4,2,"No matches.      ");
     }
     wrefresh(w);
-    getch();
+
+        mvwprintw(w,2,2,str.c_str());
+        mvwchgat(w,2,2,str.size(),A_BOLD,0,nullptr);
+        box(w,0,0);
+        wrefresh(w);
+    }
 }
 
 std::pair<int,int> Movies::getTwoRngs(){

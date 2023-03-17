@@ -15,7 +15,7 @@ public:
         std::string name;
         int year{};
     };
-
+private:
     void addMovie();
     void rateMovies();
     void loadMovies();
@@ -25,7 +25,6 @@ public:
     std::string getStrInput(WINDOW* win, int y, int x);
     std::pair<int,int> getTwoRngs();
     std::pair<double,double> computeElo(double Ra, double Rb, bool score);
-private:
     bool stringEquals(std::string a, std::string b);
     int rng(int min, int max);
     Movie deserialize(const std::string& str);
