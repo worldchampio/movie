@@ -298,17 +298,17 @@ bool Movies::stringEquals(std::string a, std::string b)
 
 void Movies::search()
 {
-    auto w = newwin(15,globalWidth,2,21);
+    auto w = newwin(LINES-2,globalWidth,1,21);
     wattron(w,COLOR_PAIR(RED));
     mvwprintw(w,1,2,"Search: ");
     box(w,0,0);
     wrefresh(w);
-//////
-  int c{'\0'};
+
+    int c{'\0'};
     std::string str;
     while(c!='\n')
     {
-        std::vector<Movie> moviesFound;
+        std::vector<Movie> matches;
         std::string blank;
         blank.resize(str.size(),' ');
         mvwprintw(w,2,2,blank.c_str());
@@ -320,42 +320,41 @@ void Movies::search()
         } else
             str+=c;
 
-    if(str.back()=='\n')
-        str.pop_back();
+        if(str.back()=='\n')
+            str.pop_back();
 
-     for(const auto& movie : movies)
-        if(stringEquals(movie.name,str))
-            moviesFound.push_back(movie);
+        for(const auto& movie : movies)
+            if(stringEquals(movie.name,str))
+                matches.push_back(movie);
 
-    std::string blankSpace;
-    blankSpace.resize(globalWidth-2,' ');
-    for(int i=5; i<15; i++)
-        mvwprintw(w,i,2,blankSpace.c_str());
+        std::string blankSpace;
+        blankSpace.resize(globalWidth-2,' ');
+        for(int i=5; i<LINES-2; i++)
+            mvwprintw(w,i,2,blankSpace.c_str());
 
-    if(!moviesFound.empty())
-    {   
-        const std::string movieText{moviesFound.size() > 1 ? "Found "+std::to_string(moviesFound.size())+" movies:" : "Found movie:     "};
-        mvwprintw(w,4,2,movieText.c_str());
-        int y{5};
-
-        for(const auto& movie : moviesFound)
-        {
-            if(y>=14)
-                continue;
-            std::stringstream ss;
-            ss  << movie.name << " ("
-                << movie.year << ") - " 
-                << movie.rating;
-            mvwprintw(w,y,2,ss.str().c_str());
-            y++;
+        if(!matches.empty())
+        {   
+            const std::string movieText{matches.size() > 1 ? "Found "+std::to_string(matches.size())+" movies:   " : "Found movie:     "};
+            mvwprintw(w,4,2,movieText.c_str());
+            int y{5};
+            for(const auto& movie : matches)
+            {
+                if(y>=LINES-3)
+                    continue;
+                std::stringstream ss;
+                ss  << movie.name << " ("
+                    << movie.year << ") - " 
+                    << movie.rating;
+                mvwprintw(w,y,2,ss.str().c_str());
+                y++;
+            }
         }
-    } 
-    else 
-    {
-        mvwprintw(w,4,2,"No matches.      ");
-    }
-    wrefresh(w);
-
+        else 
+        {
+            mvwprintw(w,4,2,"No matches.      ");
+        }
+    
+        wrefresh(w);
         mvwprintw(w,2,2,str.c_str());
         mvwchgat(w,2,2,str.size(),A_BOLD,0,nullptr);
         box(w,0,0);
