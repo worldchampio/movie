@@ -45,9 +45,10 @@ Movies::Movies()
         "Search for movie",
         "Browse",
         "Recommend",
-        "Load movies",
+        "About",
         "Exit",
     };
+    const int maxPos{static_cast<int>(menuItems.size())-1};
 
     for(int i=0; i<menuItems.size(); i++)
         mvprintw(i+2,4,menuItems[i]);
@@ -65,7 +66,6 @@ Movies::Movies()
     
     char c{'\0'};
     int pos = 0;
-    mvprintw(pos+2,2,">");
     refresh();
     noecho();
     while(c!='q'){
@@ -102,15 +102,14 @@ Movies::Movies()
                     case 2: { search(); break; }
                     case 3: { browse(); break; }
                     case 4: { recommend(); break; }
-                    case 5: { break; }
+                    case 5: { about(); break; }
                     case 6: { endwin(); return; }
                     default: break;
                 }
         }
-        if(pos > 6)
-            pos = 0;
-        if(pos < 0)
-            pos = 6;
+
+        pos = pos < 0 ? maxPos : pos > maxPos ? 0 : pos;
+
         mvprintw(pos+2,2,"*");
         mvchgat(pos+2,2,1,A_STANDOUT,COLOR_PAIR(1),nullptr);
         box(stdscr,0,0);
@@ -167,6 +166,31 @@ void Movies::recommend()
     box(w,0,0);
     mvwprintw(w,0,2,"RECOMMENDATION");
     mvwprintw(w,3,1," ");
+    wrefresh(w);
+    getch();
+}
+
+void Movies::about()
+{
+    const std::vector str{
+        "Standard ELO ranking algorithm: ",
+        " ",
+        "                 1",
+        "Ea = ------------------------",
+        "     1 + 10^( (Rb - Ra)/400 )",
+        " ",
+        "                 1",
+        "Eb = ------------------------",
+        "     1 + 10^( (Ra - Rb)/400 )",
+        " ",
+        "Ra,new = Ra + K * (score - Ea) , K = 32",
+        "Rb,new = Rb + K * (score - Eb) , K = 32"
+    };
+    auto w = newwin(str.size()+4,46,1,21);
+    wattron(w,COLOR_PAIR(GREEN));
+    for(int i=0; i<str.size(); i++)
+        mvwprintw(w,i+2,3,str[i]);
+    box(w,0,0);
     wrefresh(w);
     getch();
 }
@@ -454,7 +478,6 @@ void Movies::rateMovies()
             mvwprintw(w1,2,2,diff1Str.c_str());
             mvwprintw(w2,2,2,diff2Str.c_str());
         }
-
         wrefresh(w1);
         wrefresh(w2);
     }

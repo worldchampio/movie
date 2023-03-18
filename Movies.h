@@ -22,6 +22,7 @@ private:
     void browse();
     void recommend();
     void search();
+    void about();
     std::string getStrInput(WINDOW* win, int y, int x);
     std::pair<int,int> getTwoRngs();
     std::pair<double,double> computeElo(double Ra, double Rb, bool score);
