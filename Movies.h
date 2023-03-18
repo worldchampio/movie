@@ -16,13 +16,19 @@ public:
         int year{};
     };
 private:
+    void loadMovies();
+    int createMenu();
+    void navigationBar(int maxPos);
+
     void addMovie();
     void rateMovies();
-    void loadMovies();
     void browse();
     void recommend();
+    std::pair<Movie,double> highestDiffMovie();
+    Movie highestRatedMovie();
     void search();
     void about();
+    
     std::string getStrInput(WINDOW* win, int y, int x);
     std::pair<int,int> getTwoRngs();
     std::pair<double,double> computeElo(double Ra, double Rb, bool score);
@@ -31,6 +37,7 @@ private:
     Movie deserialize(const std::string& str);
     std::string serialize(const Movie& movie);
     std::string displayString(const Movie& movie, const std::string& preStr = "");
+
     std::fstream moviefile;
     std::vector<Movie> movies;
     std::unordered_map<int,double> ratedMovies;

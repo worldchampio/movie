@@ -26,6 +26,24 @@ Movies::Movies()
 {
     moviefile.open(Filename);
     loadMovies();
+    const auto menuSize = createMenu();
+    navigationBar(menuSize);
+}
+
+Movies::~Movies()
+{
+    moviefile.close();
+    fs::remove(Filename);
+    moviefile.open(Filename,std::ios_base::app);
+    for(const auto& movie : movies)
+        moviefile << serialize(movie);
+    moviefile.close();
+
+    endwin();
+}
+
+int Movies::createMenu() 
+{
     initscr();
     curs_set(0);
 
@@ -47,7 +65,7 @@ Movies::Movies()
         "About",
         "Exit",
     };
-    const int maxPos{static_cast<int>(menuItems.size())-1};
+
 
     for(int i=0; i<menuItems.size(); i++)
         mvprintw(i+2,4,menuItems[i]);
@@ -63,10 +81,16 @@ Movies::Movies()
     for(int i=0; i<helpItems.size(); i++)
         mvprintw(LINES-i-3,4,helpItems[i]);
     
-    char c{'\0'};
-    int pos = 0;
     refresh();
     noecho();
+
+    return static_cast<int>(menuItems.size())-1;
+}
+
+void Movies::navigationBar(int maxPos) 
+{
+    char c{'\0'};
+    int pos = 0;
     while(c!='q'){
         switch(c){
             case KEY_UP:
@@ -92,12 +116,7 @@ Movies::Movies()
                 switch(pos)
                 {
                     case 0: { addMovie(); break; }
-                    case 1: 
-                    { 
-                        for(int i=0; i<10; i++) 
-                            rateMovies(); 
-                        break;
-                    }
+                    case 1: { for(int i=0; i<10; i++) rateMovies(); break; }
                     case 2: { search(); break; }
                     case 3: { browse(); break; }
                     case 4: { recommend(); break; }
@@ -106,9 +125,7 @@ Movies::Movies()
                     default: break;
                 }
         }
-
         pos = pos < 0 ? maxPos : pos > maxPos ? 0 : pos;
-
         mvprintw(pos+2,2,"*");
         mvchgat(pos+2,2,1,A_STANDOUT,COLOR_PAIR(1),nullptr);
         box(stdscr,0,0);
@@ -117,48 +134,19 @@ Movies::Movies()
     }
 }
 
-Movies::~Movies()
-{
-    moviefile.close();
-    fs::remove(Filename);
-    moviefile.open(Filename,std::ios_base::app);
-    for(const auto& movie : movies)
-        moviefile << serialize(movie);
-    moviefile.close();
-
-    endwin();
-}
-
 void Movies::recommend()
 {
     const auto randomMovie{ movies[rng(0,movies.size()-1)] };
-    Movie highestRatedMovie;
-    double rating{0};
-    for(const auto& movie : movies)
-        if(movie.rating > rating)
-        {    
-            highestRatedMovie = movie;
-            rating = movie.rating;
-        }
-
-    Movie highestDiffMovie;
-    double diff{0};
-    for(const auto& movieIndex : ratedMovies)
-        if(movieIndex.second > diff)
-        {    
-            highestDiffMovie = movies[movieIndex.first];
-            diff = movieIndex.second;
-        }
-
     auto w = newwin(5,globalWidth+10,2,21);
     wattron(w,COLOR_PAIR(MAGENTA));
     mvwprintw(w,1,2, displayString(randomMovie, "RANDOM:  ").c_str());
     if(!ratedMovies.empty())
     {
-        const auto str{displayString(highestDiffMovie, "HOTTEST: ") +" +"+std::to_string(static_cast<int>(diff))+""};
+        const auto [highestDiff,diff]{highestDiffMovie()};
+        const auto str{displayString(highestDiff, "HOTTEST: ") +" +"+std::to_string(static_cast<int>(diff))+""};
         mvwprintw(w,2,2, str.c_str());
     }
-    mvwprintw(w,3,2, displayString(highestRatedMovie, "HIGHEST: ").c_str());
+    mvwprintw(w,3,2, displayString(highestRatedMovie(), "HIGHEST: ").c_str());
     box(w,0,0);
     mvwprintw(w,0,2,"RECOMMENDATION");
     mvwprintw(w,3,1," ");
@@ -166,6 +154,32 @@ void Movies::recommend()
     getch();
     delwin(w);
 }
+
+std::pair<Movies::Movie,double> Movies::highestDiffMovie()
+{
+    Movie highestDiff;
+    double diff{0};
+    for(const auto& movieIndex : ratedMovies)
+        if(movieIndex.second > diff)
+        {    
+            highestDiff = movies[movieIndex.first];
+            diff = movieIndex.second;
+        }
+    return{ highestDiff,diff };
+}
+
+Movies::Movie Movies::highestRatedMovie()
+{
+    Movie highestRated;
+    double rating{0};
+    for(const auto& movie : movies)
+        if(movie.rating > rating)
+        {    
+            highestRated = movie;
+            rating = movie.rating;
+        }
+    return highestRated;    
+}  
 
 void Movies::about()
 {
