@@ -238,7 +238,7 @@ std::string Movies::getStrInput(WINDOW* win, int y, int x)
 
 void Movies::browse(){
     constexpr auto xStart{17+4};
-    auto w = newwin(LINES-2,COLS-xStart-3,1,xStart+2);
+    auto w{ newwin(LINES-2,COLS-xStart-3,1,xStart+2) };
     wattron(w,COLOR_PAIR(YELLOW));
 
     auto shift{0};
@@ -295,7 +295,7 @@ void Movies::browse(){
 }
 
 void Movies::addMovie(){
-    auto w = newwin(10,globalWidth,2,21);
+    auto w{ newwin(10,globalWidth,2,21) };
     wattron(w,COLOR_PAIR(RED));
     mvwprintw(w,1,2,"Name:");
     mvwprintw(w,2,2,"Year:");
@@ -350,7 +350,7 @@ bool Movies::stringEquals(std::string a, std::string b)
 
 void Movies::search()
 {
-    auto w = newwin(LINES-2,globalWidth,1,21);
+    auto w{ newwin(LINES-2,globalWidth,1,21) };
     wattron(w,COLOR_PAIR(RED));
     mvwprintw(w,1,2,"Search: ");
     box(w,0,0);
@@ -425,8 +425,8 @@ void Movies::rateMovies()
     const auto[firstNumber,secondNumber]{getTwoRngs()};
     const auto firstMovie{movies[firstNumber]};
     const auto secondMovie{movies[secondNumber]};
-    auto w1 = newwin(4,globalWidth,2,21);
-    auto w2 = newwin(4,globalWidth,7,21);
+    auto w1{ newwin(4,globalWidth,2,21) };
+    auto w2{ newwin(4,globalWidth,7,21)};
     wattron(w1,COLOR_PAIR(CYAN));
     wattron(w2,COLOR_PAIR(CYAN));
     mvwprintw(w1,1,2,displayString(firstMovie, "FIRST:  ").c_str());
