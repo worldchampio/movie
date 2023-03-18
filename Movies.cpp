@@ -9,7 +9,6 @@ namespace fs = std::filesystem;
 
 namespace 
 {
-    constexpr auto VERSION{"V1.0.0"};
     constexpr auto Filename{"movies.txt"};
 
     constexpr auto RatingIdx{0};
@@ -113,9 +112,6 @@ Movies::Movies()
         mvprintw(pos+2,2,"*");
         mvchgat(pos+2,2,1,A_STANDOUT,COLOR_PAIR(1),nullptr);
         box(stdscr,0,0);
-        const std::string sz{std::to_string(COLS)+"x"+std::to_string(LINES)};
-        mvprintw(LINES-1,3,VERSION);
-        mvprintw(LINES-1,11, sz.c_str());
         refresh();
         c = getch();
     }
@@ -168,6 +164,7 @@ void Movies::recommend()
     mvwprintw(w,3,1," ");
     wrefresh(w);
     getch();
+    delwin(w);
 }
 
 void Movies::about()
@@ -188,11 +185,13 @@ void Movies::about()
     };
     auto w = newwin(str.size()+4,46,1,21);
     wattron(w,COLOR_PAIR(GREEN));
+    wattron(w,A_BOLD);
     for(int i=0; i<str.size(); i++)
         mvwprintw(w,i+2,3,str[i]);
     box(w,0,0);
     wrefresh(w);
     getch();
+    delwin(w);
 }
 
 std::string Movies::getStrInput(WINDOW* win, int y, int x)
@@ -209,7 +208,8 @@ std::string Movies::getStrInput(WINDOW* win, int y, int x)
         {
             if(!str.empty())
                 str.pop_back();
-        } else
+        } 
+        else
             str+=c;
 
         mvwprintw(win,y,x,str.c_str());
@@ -229,7 +229,8 @@ void Movies::browse(){
 
     auto shift{0};
     const auto lastMovie{static_cast<int>(movies.size()-1)};
-    const auto drawMovies{[this,&w,&lastMovie](int shift){
+    const auto drawMovies{[this,&w,&lastMovie](int shift)
+    {
         if(shift>=movies.size()-1)
             return;
         for(int y=1; y<movies.size(); y++)
@@ -263,21 +264,20 @@ void Movies::browse(){
             pos = 1;
             if(shift+pos > 0)
                 shift--;
-            shift = std::clamp(shift,0,lastMovie);
-            drawMovies(shift);
         } 
         else if ( pos > LINES-4)
         {
             pos = LINES-4;
             if(shift+pos < lastMovie)
                 shift++;
-            shift = std::clamp(shift,0,lastMovie);
-            drawMovies(shift);
         }
+        shift = std::clamp(shift,0,lastMovie);
+        drawMovies(shift);
         box(w,0,0);
         mvwprintw(w,pos,0,">");
         wrefresh(w);
     }
+    delwin(w);
 }
 
 void Movies::addMovie(){
@@ -318,6 +318,7 @@ void Movies::addMovie(){
         wrefresh(w);
         getch();   
     }
+    delwin(w);
 }
 
 char asciitolower(char in) {
@@ -330,10 +331,7 @@ bool Movies::stringEquals(std::string a, std::string b)
 {
     std::transform(a.begin(), a.end(), a.begin(), asciitolower);
     std::transform(b.begin(), b.end(), b.begin(), asciitolower);
-
-    if(a.find(b) != std::string::npos)
-        return true;
-    return false;
+    return a.find(b) != std::string::npos;
 }
 
 void Movies::search()
@@ -396,6 +394,7 @@ void Movies::search()
         box(w,0,0);
         wrefresh(w);
     }
+    delwin(w);
 }
 
 std::pair<int,int> Movies::getTwoRngs(){
@@ -414,7 +413,6 @@ void Movies::rateMovies()
     const auto secondMovie{movies[secondNumber]};
     auto w1 = newwin(4,globalWidth,2,21);
     auto w2 = newwin(4,globalWidth,7,21);
-
     wattron(w1,COLOR_PAIR(CYAN));
     wattron(w2,COLOR_PAIR(CYAN));
     mvwprintw(w1,1,2,displayString(firstMovie, "FIRST:  ").c_str());
@@ -426,7 +424,7 @@ void Movies::rateMovies()
 
     std::optional<bool> selection;
     std::optional<std::pair<double,double>> newRatings;
-    bool loop{true};
+    auto loop{true};
     while(loop){
         switch (getch())
         {
@@ -459,18 +457,15 @@ void Movies::rateMovies()
             break;
         }
                    
-        if(selection.has_value()){
-            const auto victory{selection.value()};
-            newRatings = computeElo(firstMovie.rating,secondMovie.rating,victory );
-        }
+        if(selection.has_value())
+            newRatings = computeElo(firstMovie.rating,secondMovie.rating,selection.value());
 
-        if(newRatings.has_value()){
+        if(newRatings.has_value())
+        {
             const auto diff1{newRatings.value().first-firstMovie.rating};
             const auto diff2{newRatings.value().second-secondMovie.rating};
-
             ratedMovies[firstNumber] += diff1;
             ratedMovies[secondNumber] += diff2;
-
             movies[firstNumber].rating += diff1;
             movies[secondNumber].rating += diff2;
             const auto diff1Str{ "Rating: "+ std::string(diff1 > 0 ? "+":"") + std::to_string(static_cast<int>(diff1)) };
@@ -481,6 +476,8 @@ void Movies::rateMovies()
         wrefresh(w1);
         wrefresh(w2);
     }
+    delwin(w1);
+    delwin(w2);
 }
 
 void Movies::loadMovies()
