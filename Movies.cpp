@@ -26,7 +26,7 @@ Movies::Movies()
 {
     moviefile.open(Filename);
     loadMovies();
-    const auto menuSize = createMenu();
+    const auto menuSize{ createMenu() };
     navigationBar(menuSize);
 }
 
@@ -34,6 +34,7 @@ Movies::~Movies()
 {
     moviefile.close();
     fs::remove(Filename);
+
     moviefile.open(Filename,std::ios_base::app);
     for(const auto& movie : movies)
         moviefile << serialize(movie);
@@ -65,7 +66,6 @@ int Movies::createMenu()
         "About",
         "Exit",
     };
-
 
     for(int i=0; i<menuItems.size(); i++)
         mvprintw(i+2,4,menuItems[i]);

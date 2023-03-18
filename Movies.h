@@ -19,24 +19,23 @@ private:
     void loadMovies();
     int createMenu();
     void navigationBar(int maxPos);
-
     void addMovie();
     void rateMovies();
     void browse();
     void recommend();
-    std::pair<Movie,double> highestDiffMovie();
-    Movie highestRatedMovie();
     void search();
     void about();
     
-    std::string getStrInput(WINDOW* win, int y, int x);
-    std::pair<int,int> getTwoRngs();
-    std::pair<double,double> computeElo(double Ra, double Rb, bool score);
-    bool stringEquals(std::string a, std::string b);
-    int rng(int min, int max);
+    Movie highestRatedMovie();
     Movie deserialize(const std::string& str);
     std::string serialize(const Movie& movie);
     std::string displayString(const Movie& movie, const std::string& preStr = "");
+    std::string getStrInput(WINDOW* win, int y, int x);
+    bool stringEquals(std::string a, std::string b);
+    std::pair<Movie,double> highestDiffMovie();
+    std::pair<double,double> computeElo(double Ra, double Rb, bool score);
+    std::pair<int,int> getTwoRngs();
+    int rng(int min, int max);
 
     std::fstream moviefile;
     std::vector<Movie> movies;
