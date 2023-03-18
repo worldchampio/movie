@@ -155,17 +155,15 @@ void Movies::recommend()
             diff = movieIndex.second;
         }
 
-    std::stringstream randomSS, highestSS, diffSS;
-    randomSS << "RANDOM:  " << randomMovie.name << " (" << randomMovie.year << ") - " << randomMovie.rating;
-    if(!ratedMovies.empty())
-        diffSS << "HOTTEST: "   << highestDiffMovie.name << " (" << highestDiffMovie.year << ") - " << highestDiffMovie.rating << " " << diff;
-    highestSS<< "HIGHEST: " << highestRatedMovie.name << " (" << highestRatedMovie.year << ") - " << highestRatedMovie.rating;
-
-    auto w = newwin(5,globalWidth,2,21);
+    auto w = newwin(5,globalWidth+10,2,21);
     wattron(w,COLOR_PAIR(MAGENTA));
-    mvwprintw(w,1,2,randomSS.str().c_str());
-    mvwprintw(w,2,2,diffSS.str().c_str());
-    mvwprintw(w,3,2,highestSS.str().c_str());
+    mvwprintw(w,1,2, displayString(randomMovie, "RANDOM:  ").c_str());
+    if(!ratedMovies.empty())
+    {
+        const auto str{displayString(highestDiffMovie, "HOTTEST: ") +" +"+std::to_string(static_cast<int>(diff))+""};
+        mvwprintw(w,2,2, str.c_str());
+    }
+    mvwprintw(w,3,2, displayString(highestRatedMovie, "HIGHEST: ").c_str());
     box(w,0,0);
     mvwprintw(w,0,2,"RECOMMENDATION");
     mvwprintw(w,3,1," ");
@@ -210,16 +208,14 @@ void Movies::browse(){
     const auto drawMovies{[this,&w,&lastMovie](int shift){
         if(shift>=movies.size()-1)
             return;
-        for(int y=1; y<movies.size(); y++){
+        for(int y=1; y<movies.size(); y++)
+        {
             const int adjustedShift{ std::clamp(y+shift,0,lastMovie) };
             const auto& currentMovie{movies[adjustedShift]};
-            std::stringstream ss;
-            ss  << currentMovie.rating << " " 
-                << currentMovie.name <<" ("
-                << currentMovie.year <<")";
             std::string bigSpace; bigSpace.resize(COLS-xStart-4,' ');
             mvwprintw(w,y,2,bigSpace.c_str());
-            mvwprintw(w,y,2,ss.str().c_str()); }
+            mvwprintw(w,y,2,displayString(currentMovie).c_str()); 
+        }
     }};
     drawMovies(shift);
     box(w,0,0);
@@ -292,10 +288,8 @@ void Movies::addMovie(){
         if(potentialMatch.has_value())
         {
             mvwprintw(w,7,2,"Already exists: ");
-            std::stringstream ss;
             const auto match{potentialMatch.value()};
-            ss << match.name << " (" << match.year << ") - " << match.rating;
-            mvwprintw(w,8,2,ss.str().c_str());
+            mvwprintw(w,8,2,displayString(match).c_str());
         }
         wrefresh(w);
         getch();   
@@ -363,11 +357,7 @@ void Movies::search()
             {
                 if(y>=LINES-3)
                     continue;
-                std::stringstream ss;
-                ss  << movie.name << " ("
-                    << movie.year << ") - " 
-                    << movie.rating;
-                mvwprintw(w,y,2,ss.str().c_str());
+                mvwprintw(w,y,2,displayString(movie).c_str());
                 y++;
             }
         }
@@ -398,16 +388,13 @@ void Movies::rateMovies()
     const auto[firstNumber,secondNumber]{getTwoRngs()};
     const auto firstMovie{movies[firstNumber]};
     const auto secondMovie{movies[secondNumber]};
-    std::stringstream ssFirst, ssSecond;
-    ssFirst << "FIRST: " << firstMovie.name << " ("<<firstMovie.year<<") - " << firstMovie.rating;
-    ssSecond << "SECOND: " << secondMovie.name << " ("<<secondMovie.year<<") - " << secondMovie.rating;
     auto w1 = newwin(4,globalWidth,2,21);
     auto w2 = newwin(4,globalWidth,7,21);
 
     wattron(w1,COLOR_PAIR(CYAN));
     wattron(w2,COLOR_PAIR(CYAN));
-    mvwprintw(w1,1,2,ssFirst.str().c_str());
-    mvwprintw(w2,1,2,ssSecond.str().c_str());
+    mvwprintw(w1,1,2,displayString(firstMovie, "FIRST:  ").c_str());
+    mvwprintw(w2,1,2,displayString(secondMovie, "SECOND: ").c_str());
     box(w1,0,0);
     box(w2,0,0);
     wrefresh(w1);
@@ -501,6 +488,14 @@ std::string Movies::serialize(const Movie& movie)
     ss << movie.rating<< ","
        << movie.name  << ","
        << movie.year  << std::endl;
+    return ss.str();
+}
+
+std::string Movies::displayString(const Movie& movie, const std::string& preStr)
+{
+    std::stringstream ss;
+    ss.precision(1);
+    ss << std::fixed << preStr << movie.name << " ("<< movie.year << ") - " << movie.rating;
     return ss.str();
 }
 

@@ -29,7 +29,7 @@ private:
     int rng(int min, int max);
     Movie deserialize(const std::string& str);
     std::string serialize(const Movie& movie);
-    
+    std::string displayString(const Movie& movie, const std::string& preStr = "");
     std::fstream moviefile;
     std::vector<Movie> movies;
     std::unordered_map<int,double> ratedMovies;
