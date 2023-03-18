@@ -9,10 +9,13 @@ namespace fs = std::filesystem;
 
 namespace 
 {
+    constexpr auto VERSION{"V1.0.0"};
     constexpr auto Filename{"movies.txt"};
+
     constexpr auto RatingIdx{0};
     constexpr auto NameIdx{1};
     constexpr auto YearIdx{2};
+
     constexpr auto CYAN{1};
     constexpr auto YELLOW{2};
     constexpr auto RED{3};
@@ -42,6 +45,7 @@ Movies::Movies()
         "Search for movie",
         "Browse",
         "Recommend",
+        "Load movies",
         "Exit",
     };
 
@@ -98,19 +102,21 @@ Movies::Movies()
                     case 2: { search(); break; }
                     case 3: { browse(); break; }
                     case 4: { recommend(); break; }
-                    case 5: { endwin(); return; }
+                    case 5: { break; }
+                    case 6: { endwin(); return; }
                     default: break;
                 }
         }
-        if(pos > 5)
+        if(pos > 6)
             pos = 0;
         if(pos < 0)
-            pos = 5;
+            pos = 6;
         mvprintw(pos+2,2,"*");
         mvchgat(pos+2,2,1,A_STANDOUT,COLOR_PAIR(1),nullptr);
         box(stdscr,0,0);
         const std::string sz{std::to_string(COLS)+"x"+std::to_string(LINES)};
-        mvprintw(LINES-1,3,sz.c_str());
+        mvprintw(LINES-1,3,VERSION);
+        mvprintw(LINES-1,11, sz.c_str());
         refresh();
         c = getch();
     }
@@ -255,26 +261,42 @@ void Movies::browse(){
 }
 
 void Movies::addMovie(){
-    auto w = newwin(10,30,2,21);
+    auto w = newwin(10,globalWidth,2,21);
     wattron(w,COLOR_PAIR(RED));
-    mvwprintw(w,1,1,"Name:");
-    mvwprintw(w,2,1,"Year:");
+    mvwprintw(w,1,2,"Name:");
+    mvwprintw(w,2,2,"Year:");
     box(w,0,0);
     wrefresh(w);
 
-    Movie movie;
-    movie.name = getStrInput(w,1,7);
-    if(movie.name.back()=='\n')
-        movie.name.pop_back();
-    movie.year = std::atoi(getStrInput(w,2,7).c_str());
-    const auto validYear{movie.year > 1900 && movie.year < 2024};
-    movie.rating = 1000;
-    if(validYear)
-        movies.push_back(movie);
+    Movie newMovie;
+    newMovie.name = getStrInput(w,1,7);
+    if(newMovie.name.back()=='\n')
+        newMovie.name.pop_back();
+    newMovie.year = std::atoi(getStrInput(w,2,7).c_str());
+    const auto validYear{newMovie.year > 1900 && newMovie.year < 2024};
+    std::optional<Movie> potentialMatch;
+    for(const auto& movie : movies)
+        if(stringEquals(movie.name,newMovie.name))
+            potentialMatch = movie;
+
+    if(validYear && !potentialMatch)
+    {
+        newMovie.rating = 1000;
+        movies.push_back(newMovie);
+    }
     else
     {
-        mvwprintw(w,5,1,"Movie was not added.");
-        mvwprintw(w,6,1,"Invalid year.");
+        mvwprintw(w,5,2,"Movie was not added.");
+        if(!validYear)
+            mvwprintw(w,6,2,"Invalid year.");
+        if(potentialMatch.has_value())
+        {
+            mvwprintw(w,7,2,"Already exists: ");
+            std::stringstream ss;
+            const auto match{potentialMatch.value()};
+            ss << match.name << " (" << match.year << ") - " << match.rating;
+            mvwprintw(w,8,2,ss.str().c_str());
+        }
         wrefresh(w);
         getch();   
     }
