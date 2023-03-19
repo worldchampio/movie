@@ -137,7 +137,7 @@ void Movies::navigationBar(int maxPos)
 void Movies::recommend()
 {
     const auto randomMovie{ movies[rng(0,movies.size()-1)] };
-    auto w = newwin(5,globalWidth+10,2,21);
+    auto w{ newwin(5,globalWidth+10,2,21) };
     wattron(w,COLOR_PAIR(MAGENTA));
     mvwprintw(w,1,2, displayString(randomMovie, "RANDOM:  ").c_str());
     if(!ratedMovies.empty())
@@ -197,7 +197,7 @@ void Movies::about()
         "Ra,new = Ra + K * (score - Ea) , K = 32",
         "Rb,new = Rb + K * (score - Eb) , K = 32"
     };
-    auto w = newwin(str.size()+4,46,1,21);
+    auto w{ newwin(str.size()+4,46,1,21) };
     wattron(w,COLOR_PAIR(GREEN));
     wattron(w,A_BOLD);
     for(int i=0; i<str.size(); i++)
