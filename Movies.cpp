@@ -80,7 +80,7 @@ int Movies::createMenu()
 
     for(int i=0; i<helpItems.size(); i++)
         mvprintw(LINES-i-3,4,helpItems[i]);
-    
+
     refresh();
     noecho();
 
@@ -145,6 +145,7 @@ void Movies::recommend()
         const auto [highestDiff,diff]{highestDiffMovie()};
         const auto str{displayString(highestDiff, "HOTTEST: ") +" +"+std::to_string(static_cast<int>(diff))+""};
         mvwprintw(w,2,2, str.c_str());
+        mvwchgat(w,2,str.size()-1,4,A_BOLD,COLOR_MAGENTA,nullptr);
     }
     mvwprintw(w,3,2, displayString(highestRatedMovie(), "HIGHEST: ").c_str());
     box(w,0,0);
