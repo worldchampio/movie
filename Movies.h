@@ -18,6 +18,7 @@ public:
 private:
     void loadMovies();
     int createMenu();
+    void initColors();
     void navigationBar(int maxPos);
     void addMovie();
     void rateMovies();

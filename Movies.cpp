@@ -10,11 +10,6 @@ namespace fs = std::filesystem;
 namespace 
 {
     constexpr auto Filename{"movies.txt"};
-
-    constexpr auto RatingIdx{0};
-    constexpr auto NameIdx{1};
-    constexpr auto YearIdx{2};
-
     constexpr auto CYAN{1};
     constexpr auto YELLOW{2};
     constexpr auto RED{3};
@@ -47,14 +42,7 @@ int Movies::createMenu()
 {
     initscr();
     curs_set(0);
-
-    start_color();
-    init_pair(CYAN,COLOR_CYAN,COLOR_BLACK);
-    init_pair(YELLOW,COLOR_YELLOW,COLOR_BLACK);
-    init_pair(RED,COLOR_RED,COLOR_BLACK);
-    init_pair(GREEN,COLOR_GREEN,COLOR_BLACK);
-    init_pair(MAGENTA,COLOR_MAGENTA,COLOR_BLACK);
-    attron(COLOR_PAIR(1));
+    initColors();
 
     box(stdscr,0,0);
     const std::vector menuItems{
@@ -85,6 +73,17 @@ int Movies::createMenu()
     noecho();
 
     return static_cast<int>(menuItems.size())-1;
+}
+
+void Movies::initColors()
+{
+    start_color();
+    init_pair(CYAN,COLOR_CYAN,COLOR_BLACK);
+    init_pair(YELLOW,COLOR_YELLOW,COLOR_BLACK);
+    init_pair(RED,COLOR_RED,COLOR_BLACK);
+    init_pair(GREEN,COLOR_GREEN,COLOR_BLACK);
+    init_pair(MAGENTA,COLOR_MAGENTA,COLOR_BLACK);
+    attron(COLOR_PAIR(1));
 }
 
 void Movies::navigationBar(int maxPos) 
@@ -253,7 +252,7 @@ void Movies::browse(){
             const int adjustedShift{ std::clamp(y+shift,0,lastMovie) };
             const auto& currentMovie{movies[adjustedShift]};
             std::string bigSpace; bigSpace.resize(COLS-xStart-4,' ');
-            mvwprintw(w,y,2,bigSpace.c_str());
+            mvwprintw(w,y,0,bigSpace.c_str());
             mvwprintw(w,y,2,displayString(currentMovie).c_str()); 
         }
     }};
@@ -303,11 +302,14 @@ void Movies::addMovie(){
     box(w,0,0);
     wrefresh(w);
 
-    Movie newMovie;
-    newMovie.name = getStrInput(w,1,7);
-    if(newMovie.name.back()=='\n')
+    Movie newMovie{
+        1000,
+        getStrInput(w,1,7),
+        std::atoi(getStrInput(w,2,7).c_str())
+    };
+
+    if(newMovie.name.back()=='\n') 
         newMovie.name.pop_back();
-    newMovie.year = std::atoi(getStrInput(w,2,7).c_str());
     const auto validYear{newMovie.year > 1900 && newMovie.year < 2024};
     std::optional<Movie> potentialMatch;
     for(const auto& movie : movies)
@@ -336,14 +338,12 @@ void Movies::addMovie(){
     delwin(w);
 }
 
-char asciitolower(char in) {
-    if (in <= 'Z' && in >= 'A')
-        return in - ('Z' - 'z');
-    return in;
-};
-
 bool Movies::stringEquals(std::string a, std::string b)
 {
+    const auto asciitolower{[](char in) -> char 
+    { 
+        return (in <= 'Z' && in >= 'A') ? in - ('Z' - 'z') : in;
+    }};
     std::transform(a.begin(), a.end(), a.begin(), asciitolower);
     std::transform(b.begin(), b.end(), b.begin(), asciitolower);
     return a.find(b) != std::string::npos;
@@ -511,9 +511,9 @@ Movies::Movie Movies::deserialize(const std::string& str)
         tokens.push_back(token);
 
     return{
-        std::atof(tokens[RatingIdx].c_str()),
-        tokens[NameIdx],
-        std::atoi(tokens[YearIdx].c_str())
+        std::atof(tokens[0].c_str()),
+        tokens[1],
+        std::atoi(tokens[2].c_str())
     };
 }
 
