@@ -17,9 +17,10 @@ public:
     };
 private:
     void loadMovies();
-    int createMenu();
+    void createMenu();
     void initColors();
-    void navigationBar(int maxPos);
+    void eventLoop();
+
     void addMovie();
     void rateMovies();
     void browse();
@@ -34,7 +35,7 @@ private:
     std::string getStrInput(WINDOW* win, int y, int x);
     bool stringEquals(std::string a, std::string b);
     std::pair<Movie,double> highestDiffMovie();
-    std::pair<double,double> computeElo(double Ra, double Rb, bool score);
+    std::pair<double,double> computeElo(double Ra, double Rb, bool victor);
     std::pair<int,int> getTwoRngs();
     int rng(int min, int max);
 
@@ -42,4 +43,5 @@ private:
     std::vector<Movie> movies;
     std::unordered_map<int,double> ratedMovies;
     int globalWidth{90};
+    int menuSize{};
 };

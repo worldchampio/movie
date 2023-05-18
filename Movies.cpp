@@ -19,10 +19,13 @@ namespace
 
 Movies::Movies()
 {
-    moviefile.open(Filename);
     loadMovies();
-    const auto menuSize{ createMenu() };
-    navigationBar(menuSize);
+    initscr();
+    curs_set(0);
+    initColors();
+    noecho();
+    createMenu();
+    eventLoop();
 }
 
 Movies::~Movies()
@@ -38,13 +41,10 @@ Movies::~Movies()
     endwin();
 }
 
-int Movies::createMenu() 
+void Movies::createMenu() 
 {
-    initscr();
-    curs_set(0);
-    initColors();
-
     box(stdscr,0,0);
+    constexpr auto x{4};
     const std::vector menuItems{
         "Add movie." ,
         "Rate two movies",
@@ -54,9 +54,9 @@ int Movies::createMenu()
         "About",
         "Exit",
     };
-
+    menuSize = static_cast<int>(menuItems.size())-1;
     for(int i=0; i<menuItems.size(); i++)
-        mvprintw(i+2,4,menuItems[i]);
+        mvprintw(i+2,x,menuItems[i]);
 
     const std::vector helpItems{
         "SHIFT+9 - Backspace",
@@ -67,12 +67,7 @@ int Movies::createMenu()
     };
 
     for(int i=0; i<helpItems.size(); i++)
-        mvprintw(LINES-i-3,4,helpItems[i]);
-
-    refresh();
-    noecho();
-
-    return static_cast<int>(menuItems.size())-1;
+        mvprintw(LINES-i-3,x,helpItems[i]);
 }
 
 void Movies::initColors()
@@ -86,7 +81,7 @@ void Movies::initColors()
     attron(COLOR_PAIR(1));
 }
 
-void Movies::navigationBar(int maxPos) 
+void Movies::eventLoop() 
 {
     char c{'\0'};
     int pos = 0;
@@ -124,7 +119,7 @@ void Movies::navigationBar(int maxPos)
                     default: break;
                 }
         }
-        pos = pos < 0 ? maxPos : pos > maxPos ? 0 : pos;
+        pos = pos < 0 ? menuSize : pos > menuSize ? 0 : pos;
         mvprintw(pos+2,2,"*");
         mvchgat(pos+2,2,1,A_STANDOUT,COLOR_PAIR(1),nullptr);
         box(stdscr,0,0);
@@ -236,7 +231,8 @@ std::string Movies::getStrInput(WINDOW* win, int y, int x)
     return str;
 }
 
-void Movies::browse(){
+void Movies::browse()
+{
     constexpr auto xStart{17+4};
     auto w{ newwin(LINES-2,COLS-xStart-3,1,xStart+2) };
     wattron(w,COLOR_PAIR(YELLOW));
@@ -258,6 +254,9 @@ void Movies::browse(){
     }};
     drawMovies(shift);
     box(w,0,0);
+    const std::string title{std::to_string(movies.size())+" movies loaded."};
+    mvwprintw(w,0,2,title.c_str());
+    mvwchgat(w,0,2,title.size(),A_BOLD,COLOR_PAIR(YELLOW),nullptr);
     wrefresh(w);
     char c{'\0'};
     int pos{0};
@@ -265,6 +264,7 @@ void Movies::browse(){
     {
         c = getch();
         mvwprintw(w,pos,0," ");
+        mvwchgat(w,pos,0,1,A_NORMAL,COLOR_PAIR(YELLOW),nullptr);
         switch (c)
         {
         case 's': case 'S': case KEY_DOWN: { pos++; break; }     
@@ -288,13 +288,17 @@ void Movies::browse(){
         shift = std::clamp(shift,0,lastMovie);
         drawMovies(shift);
         box(w,0,0);
+        mvwprintw(w,0,2,title.c_str());
+        mvwchgat(w,0,2,title.size(),A_BOLD,COLOR_PAIR(YELLOW),nullptr);
         mvwprintw(w,pos,0,">");
+        mvwchgat(w,pos,0,1,A_STANDOUT,COLOR_PAIR(YELLOW),nullptr);
         wrefresh(w);
     }
     delwin(w);
 }
 
-void Movies::addMovie(){
+void Movies::addMovie()
+{
     auto w{ newwin(10,globalWidth,2,21) };
     wattron(w,COLOR_PAIR(RED));
     mvwprintw(w,1,2,"Name:");
@@ -477,16 +481,16 @@ void Movies::rateMovies()
 
         if(newRatings.has_value())
         {
-            const auto diff1{newRatings.value().first-firstMovie.rating};
-            const auto diff2{newRatings.value().second-secondMovie.rating};
+            const auto diff1{ newRatings.value().first - firstMovie.rating };
+            const auto diff2{ newRatings.value().second - secondMovie.rating };
             ratedMovies[firstNumber] += diff1;
             ratedMovies[secondNumber] += diff2;
             movies[firstNumber].rating += diff1;
             movies[secondNumber].rating += diff2;
             const auto diff1Str{ "Rating: "+ std::string(diff1 > 0 ? "+":"") + std::to_string(static_cast<int>(diff1)) };
             const auto diff2Str{ "Rating: "+ std::string(diff2 > 0 ? "+":"") + std::to_string(static_cast<int>(diff2)) };
-            mvwprintw(w1,2,2,diff1Str.c_str());
-            mvwprintw(w2,2,2,diff2Str.c_str());
+            mvwprintw(w1, 2, 2, diff1Str.c_str());
+            mvwprintw(w2, 2, 2, diff2Str.c_str());
         }
         wrefresh(w1);
         wrefresh(w2);
@@ -497,6 +501,8 @@ void Movies::rateMovies()
 
 void Movies::loadMovies()
 {
+    moviefile.open(Filename);
+
     std::string str;
     while(std::getline(moviefile,str))
         movies.push_back(deserialize(str));
@@ -534,14 +540,14 @@ std::string Movies::displayString(const Movie& movie, const std::string& preStr)
     return ss.str();
 }
 
-std::pair<double,double> Movies::computeElo(double Ra, double Rb, bool score)
+std::pair<double,double> Movies::computeElo(double Ra, double Rb, bool victor)
 {
     constexpr auto K{32};
-    const auto Ea = 1/( 1 + pow(10,(Rb-Ra)/400)); 
-    const auto Eb = 1/( 1 + pow(10,(Ra-Rb)/400));
-    const auto Ra_ = Ra + K * (score - Ea);
-    const auto Rb_ = Rb + K * (!score - Eb);
-    return { Ra_,Rb_ };
+    const auto Ea = 1 / ( 1 + pow(10, ( Rb - Ra ) / 400) ); 
+    const auto Eb = 1 / ( 1 + pow(10, ( Ra -Rb ) / 400) );
+    const auto Ra_ = Ra + K * (victor - Ea);
+    const auto Rb_ = Rb + K * (!victor - Eb);
+    return { Ra_, Rb_ };
 }
 
 int Movies::rng(int min, int max) 
