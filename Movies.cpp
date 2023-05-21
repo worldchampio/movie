@@ -5,8 +5,6 @@
 #include <fstream>
 #include <random>
 
-namespace fs = std::filesystem;
-
 namespace 
 {
     constexpr auto Filename{"movies.txt"};
@@ -16,9 +14,53 @@ namespace
     constexpr auto GREEN{4};
     constexpr auto MAGENTA{5};
 }
+namespace Utils {
+    constexpr auto validYear(int year)
+    { 
+        return year > 1900 && year < 2024;
+    }
+
+    constexpr std::pair<double,double> computeElo(double Ra, double Rb, bool victor)
+    {
+        constexpr auto K{32};
+        const auto Ea = 1 / ( 1 + pow(10, ( Rb - Ra ) / 400) ); 
+        const auto Eb = 1 / ( 1 + pow(10, ( Ra -Rb ) / 400) );
+        const auto Ra_ = Ra + K * (victor - Ea);
+        const auto Rb_ = Rb + K * (!victor - Eb);
+        return { Ra_, Rb_ };
+    }
+
+    int rng(int min, int max) 
+    {
+        std::random_device  dev;
+        std::mt19937        rng(dev());
+        std::uniform_int_distribution<std::mt19937::result_type> dist6(min,max);
+        return dist6(rng);
+    }
+
+    bool stringEquals(std::string a, std::string b)
+    {
+        const auto asciitolower{[](char in) -> char 
+        { 
+            return (in <= 'Z' && in >= 'A') ? in - ('Z' - 'z') : in;
+        }};
+        std::transform(a.begin(), a.end(), a.begin(), asciitolower);
+        std::transform(b.begin(), b.end(), b.begin(), asciitolower);
+        return a.find(b) != std::string::npos;
+    }
+    
+    constexpr std::pair<int,int> getTwoRngs(int max){
+        const auto firstRng{rng(0,max)};    
+        int secondRng{firstRng};
+        while(secondRng==firstRng)
+            secondRng=rng(0,max);
+        
+        return {firstRng, secondRng};
+    }
+}
 
 Movies::Movies()
-{
+{  
     loadMovies();
     initscr();
     curs_set(0);
@@ -31,13 +73,13 @@ Movies::Movies()
 Movies::~Movies()
 {
     moviefile.close();
-    fs::remove(Filename);
-
+    std::filesystem::remove(Filename);
     moviefile.open(Filename,std::ios_base::app);
+
     for(const auto& movie : movies)
         moviefile << serialize(movie);
-    moviefile.close();
 
+    moviefile.close();
     endwin();
 }
 
@@ -130,7 +172,7 @@ void Movies::eventLoop()
 
 void Movies::recommend()
 {
-    const auto randomMovie{ movies[rng(0,movies.size()-1)] };
+    const auto randomMovie{ movies[Utils::rng(0,movies.size()-1)] };
     auto w{ newwin(5,globalWidth+10,2,21) };
     wattron(w,COLOR_PAIR(MAGENTA));
     mvwprintw(w,1,2, displayString(randomMovie, "RANDOM:  ").c_str());
@@ -314,13 +356,13 @@ void Movies::addMovie()
 
     if(newMovie.name.back()=='\n') 
         newMovie.name.pop_back();
-    const auto validYear{newMovie.year > 1900 && newMovie.year < 2024};
+
     std::optional<Movie> potentialMatch;
     for(const auto& movie : movies)
-        if(stringEquals(movie.name,newMovie.name))
+        if(Utils::stringEquals(movie.name,newMovie.name))
             potentialMatch = movie;
 
-    if(validYear && !potentialMatch)
+    if(Utils::validYear(newMovie.year) && !potentialMatch)
     {
         newMovie.rating = 1000;
         movies.push_back(newMovie);
@@ -328,7 +370,7 @@ void Movies::addMovie()
     else
     {
         mvwprintw(w,5,2,"Movie was not added.");
-        if(!validYear)
+        if(!Utils::validYear(newMovie.year))
             mvwprintw(w,6,2,"Invalid year.");
         if(potentialMatch.has_value())
         {
@@ -340,17 +382,6 @@ void Movies::addMovie()
         getch();   
     }
     delwin(w);
-}
-
-bool Movies::stringEquals(std::string a, std::string b)
-{
-    const auto asciitolower{[](char in) -> char 
-    { 
-        return (in <= 'Z' && in >= 'A') ? in - ('Z' - 'z') : in;
-    }};
-    std::transform(a.begin(), a.end(), a.begin(), asciitolower);
-    std::transform(b.begin(), b.end(), b.begin(), asciitolower);
-    return a.find(b) != std::string::npos;
 }
 
 void Movies::search()
@@ -381,7 +412,7 @@ void Movies::search()
             str.pop_back();
 
         for(const auto& movie : movies)
-            if(stringEquals(movie.name,str))
+            if(Utils::stringEquals(movie.name,str))
                 matches.push_back(movie);
 
         std::string blankSpace;
@@ -416,18 +447,9 @@ void Movies::search()
     delwin(w);
 }
 
-std::pair<int,int> Movies::getTwoRngs(){
-    const auto firstRng{rng(0,movies.size()-1)};    
-    int secondRng{firstRng};
-    while(secondRng==firstRng)
-        secondRng=rng(0,movies.size()-1);
-    
-    return {firstRng, secondRng};
-}
-
 void Movies::rateMovies()
 {
-    const auto[firstNumber,secondNumber]{getTwoRngs()};
+    const auto[firstNumber,secondNumber]{Utils::getTwoRngs(movies.size()-1)};
     const auto firstMovie{movies[firstNumber]};
     const auto secondMovie{movies[secondNumber]};
     auto w1{ newwin(4,globalWidth,2,21) };
@@ -477,7 +499,7 @@ void Movies::rateMovies()
         }
                    
         if(selection.has_value())
-            newRatings = computeElo(firstMovie.rating,secondMovie.rating,selection.value());
+            newRatings = Utils::computeElo(firstMovie.rating,secondMovie.rating,selection.value());
 
         if(newRatings.has_value())
         {
@@ -505,7 +527,11 @@ void Movies::loadMovies()
 
     std::string str;
     while(std::getline(moviefile,str))
-        movies.push_back(deserialize(str));
+    {
+        const auto movie{deserialize(str)};
+        if(Utils::validYear(movie.year))
+            movies.push_back(movie);
+    }
 }
 
 Movies::Movie Movies::deserialize(const std::string& str)
@@ -538,22 +564,4 @@ std::string Movies::displayString(const Movie& movie, const std::string& preStr)
     ss.precision(1);
     ss << std::fixed << preStr << movie.name << " ("<< movie.year << ") - " << movie.rating;
     return ss.str();
-}
-
-std::pair<double,double> Movies::computeElo(double Ra, double Rb, bool victor)
-{
-    constexpr auto K{32};
-    const auto Ea = 1 / ( 1 + pow(10, ( Rb - Ra ) / 400) ); 
-    const auto Eb = 1 / ( 1 + pow(10, ( Ra -Rb ) / 400) );
-    const auto Ra_ = Ra + K * (victor - Ea);
-    const auto Rb_ = Rb + K * (!victor - Eb);
-    return { Ra_, Rb_ };
-}
-
-int Movies::rng(int min, int max) 
-{
-    std::random_device  dev;
-    std::mt19937        rng(dev());
-    std::uniform_int_distribution<std::mt19937::result_type> dist6(min,max);
-    return dist6(rng);
 }

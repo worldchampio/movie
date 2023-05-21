@@ -33,11 +33,7 @@ private:
     std::string serialize(const Movie& movie);
     std::string displayString(const Movie& movie, const std::string& preStr = "");
     std::string getStrInput(WINDOW* win, int y, int x);
-    bool stringEquals(std::string a, std::string b);
     std::pair<Movie,double> highestDiffMovie();
-    std::pair<double,double> computeElo(double Ra, double Rb, bool victor);
-    std::pair<int,int> getTwoRngs();
-    int rng(int min, int max);
 
     std::fstream moviefile;
     std::vector<Movie> movies;
