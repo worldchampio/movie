@@ -27,6 +27,7 @@ private:
     void recommend();
     void search();
     void about();
+    void reset();
     
     Movie highestRatedMovie();
     Movie deserialize(const std::string& str);
@@ -38,6 +39,6 @@ private:
     std::fstream moviefile;
     std::vector<Movie> movies;
     std::unordered_map<int,double> ratedMovies;
-    int globalWidth{90};
-    int menuSize{};
+
+    std::unordered_map<std::string,int> ratingCache;
 };

@@ -1,5 +1,5 @@
 #include "Movies.h"
-#include <vector>
+#include <array>
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -13,6 +13,19 @@ namespace
     constexpr auto RED{3};
     constexpr auto GREEN{4};
     constexpr auto MAGENTA{5};
+
+    constexpr auto globalWidth{90};
+
+    constexpr std::array menuItems{
+        "Add movie." ,
+        "Rate two movies",
+        "Search for movie",
+        "Browse",
+        "Recommend",
+        "Reset ratings",
+        "About",
+        "Exit",
+    };
 }
 namespace Utils {
     constexpr auto validYear(int year)
@@ -87,16 +100,7 @@ void Movies::createMenu()
 {
     box(stdscr,0,0);
     constexpr auto x{4};
-    const std::vector menuItems{
-        "Add movie." ,
-        "Rate two movies",
-        "Search for movie",
-        "Browse",
-        "Recommend",
-        "About",
-        "Exit",
-    };
-    menuSize = static_cast<int>(menuItems.size())-1;
+
     for(int i=0; i<menuItems.size(); i++)
         mvprintw(i+2,x,menuItems[i]);
 
@@ -156,12 +160,13 @@ void Movies::eventLoop()
                     case 2: { search(); break; }
                     case 3: { browse(); break; }
                     case 4: { recommend(); break; }
-                    case 5: { about(); break; }
-                    case 6: { endwin(); return; }
+                    case 5: { reset(); break; }
+                    case 6: { about(); break; }
+                    case 7: { endwin(); return; }
                     default: break;
                 }
         }
-        pos = pos < 0 ? menuSize : pos > menuSize ? 0 : pos;
+        pos = pos < 0 ? menuItems.size() : pos > menuItems.size() ? 0 : pos;
         mvprintw(pos+2,2,"*");
         mvchgat(pos+2,2,1,A_STANDOUT,COLOR_PAIR(1),nullptr);
         box(stdscr,0,0);
@@ -242,6 +247,50 @@ void Movies::about()
     box(w,0,0);
     wrefresh(w);
     getch();
+    delwin(w);
+}
+
+void Movies::reset() 
+{
+    auto w{ newwin(40,46,1,21) };
+    wattron(w,COLOR_PAIR(GREEN));
+    wattron(w,A_BOLD);
+
+    mvwprintw(w,2,1,"Any key to exit");
+    mvwprintw(w,3,1,"D = Delete");
+    mvwprintw(w,4,1,"R = Restore");
+
+    box(w,0,0);
+    wrefresh(w);
+    switch(getch())
+    {
+        case 'D':
+        case 'd':
+        {
+            for(auto& movie : movies)
+            {
+                ratingCache[movie.name] = movie.rating;
+                movie.rating = 1000;
+            }
+            break;
+        }
+        case 'R':
+        case 'r':
+        {
+            if(ratingCache.empty())
+                break;
+                
+            for(auto& movie : movies)
+            {
+                const auto it{ ratingCache.find(movie.name) };
+                if(it != ratingCache.end()) [[likely]]
+                    movie.rating = it->second;
+            }
+            break;
+        }
+        default:
+            break;
+    }
     delwin(w);
 }
 
