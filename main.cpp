@@ -2,6 +2,5 @@
 
 int main(int argc, char* argv[])
 {
-    Movies();
-    return 0;
+    return Movies().execute();
 }

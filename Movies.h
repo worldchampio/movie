@@ -15,11 +15,17 @@ public:
         std::string name;
         int year{};
     };
+
+    struct MenuItem{
+        std::string text;
+        std::function<void()> fcn;
+    };
+
+    int execute();
 private:
     void loadMovies();
     void createMenu();
     void initColors();
-    void eventLoop();
 
     void addMovie();
     void rateMovies();
@@ -27,6 +33,8 @@ private:
     void recommend();
     void search();
     void about();
+    void dice();
+    void snake();
     void reset();
     
     Movie highestRatedMovie();
@@ -41,4 +49,5 @@ private:
     std::unordered_map<int,double> ratedMovies;
 
     std::unordered_map<std::string,int> ratingCache;
+    const std::vector<MenuItem> menuItems;
 };
