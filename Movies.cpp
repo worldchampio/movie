@@ -297,6 +297,12 @@ void Movies::snake()
                 std::time_t end_time = std::chrono::system_clock::to_time_t(end);
                 scores.push_back({score,std::ctime(&end_time)});
             }
+            std::sort(scores.begin(),scores.end(),[](const Score& s1, const Score& s2){ return s1.score > s2.score; });
+            for(int i=0; i<scores.size() && i<height-1; ++i)
+            {
+                const auto str{std::to_string(scores[i].score)+" - "+scores[i].timestamp};
+                setText(w,i+2,2,str.c_str());
+            }            
             break;
         }         
         if(mvwinch(w,pos.y,pos.x) == 'o')
