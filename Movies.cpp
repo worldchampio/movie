@@ -44,18 +44,21 @@ Movies::Movies() :
 
 Movies::~Movies()
 {
-    load(&moviefile, Filename, [this]{ for(const auto& movie : movies) moviefile << serializeMovie(movie); });
-    load(&moviefile, HighscoreFilename, [this]{ for(const auto& score : scores) highscoreFile << serializeScore(score); });
-    endwin();
-}
+    moviefile.close();
+    std::filesystem::remove(Filename);
+    moviefile.open(Filename,std::ios_base::app);
+    for(const auto& movie : movies)
+        moviefile << serializeMovie(movie);
+    moviefile.close();
 
-void Movies::load(std::fstream* fs, const std::string& name, std::function<void()> fcn)
-{
-    fs->close();
-    std::filesystem::remove(name);
-    fs->open(name,std::ios_base::app);
-    fcn();
-    fs->close();
+    highscoreFile.close();
+    std::filesystem::remove(HighscoreFilename);
+    highscoreFile.open(HighscoreFilename,std::ios_base::app);
+    for(const auto& score : scores)
+        highscoreFile << serializeScore(score);
+    highscoreFile.close();
+
+    endwin();
 }
 
 void Movies::createMenu() 
