@@ -231,13 +231,14 @@ void Movies::snake()
     int length{10};
     int score{0};
     int totalCookies{0};
+    int cookieLimit{10};
     int timeOut{60};
     while(c!='q')
     {   
         setText(w,pos.y,pos.x," ");
         snake.push_back(pos);
 
-        if(Utils::rng(0,100) < 50 && totalCookies < 10)
+        if(Utils::rng(0,100) < 50 && totalCookies < cookieLimit)
         {
             const auto[y1,y2]{Utils::getTwoRngs(1,height-2)};
             const auto[x1,x2]{Utils::getTwoRngs(1,width-2)};
@@ -296,13 +297,7 @@ void Movies::snake()
                 auto end = std::chrono::system_clock::now();
                 std::time_t end_time = std::chrono::system_clock::to_time_t(end);
                 scores.push_back({score,std::ctime(&end_time)});
-            }
-            std::sort(scores.begin(),scores.end(),[](const Score& s1, const Score& s2){ return s1.score > s2.score; });
-            for(int i=0; i<scores.size() && i<height-4; ++i)
-            {
-                const auto str{std::to_string(scores[i].score)+" - "+scores[i].timestamp};
-                setText(w,i+2,2,str.c_str());
-            }            
+            }        
             break;
         }         
         if(mvwinch(w,pos.y,pos.x) == 'o')
@@ -310,6 +305,7 @@ void Movies::snake()
             length+=5;
             ++score;
             --totalCookies;
+            ++cookieLimit;
         }
 
         setText(w,0,3,("Score: "+std::to_string(score)).c_str());
@@ -329,6 +325,12 @@ void Movies::snake()
     }
     setText(w,height-3,width/2,"GAME OVER");
     setText(w,height-2,width/2 - 5,"Any key to return");
+    std::sort(scores.begin(),scores.end(),[](const Score& s1, const Score& s2){ return s1.score > s2.score; });
+    for(int i=0; i<scores.size() && i<height-4; ++i)
+    {
+        const auto str{std::to_string(scores[i].score)+" - "+scores[i].timestamp};
+        setText(w,i+2,2,str.c_str());
+    }    
     timeout(-1);
     wrefresh(w);
     getch();
