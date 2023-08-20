@@ -1,12 +1,13 @@
 #include "Movies.h"
 #include "Utils.h"
 #include <iostream>
-#include <sstream>
 #include <fstream>
+#include <sstream>
 
 namespace
 {
     constexpr auto Filename{"movies.txt"};
+    constexpr auto HighscoreFilename{"score.txt"};
     constexpr auto CYAN{1};
     constexpr auto YELLOW{2};
     constexpr auto RED{3};
@@ -14,13 +15,6 @@ namespace
     constexpr auto MAGENTA{5};
 
     constexpr auto globalWidth{90};
-    const std::vector<std::vector<std::string>> diceSides{
-        {"     ","  O  ","     "},
-        {"O    ","     ","    O"},
-        {"    O","  O  ","O    "},
-        {"O   O","     ","O   O"},
-        {"O   O","  O  ","O   O"},
-        {"O   O","O   O","O   O"}};
 
     void setText(WINDOW* w, int y, int x, const char* text) { mvwprintw(w,y,x,text); }
     void setText(int y, int x, const char* text) { mvprintw(y,x,text); }
@@ -34,16 +28,17 @@ Movies::Movies() :
             {"Browse",          [this]{ browse(); }},
             {"Recommend",       [this]{ recommend(); }},
             {"Reset ratings",   [this]{ reset(); }},
-            {"Dice",            [this]{ dice(); }},
             {"Snake",           [this]{ snake(); }},
             {"About",           [this]{ about(); }},
             {"Exit", []{ return; }}}
 {  
     loadMovies();
+    loadHighscores();
     initscr();
     curs_set(0);
     initColors();
     noecho();
+
     createMenu();
 }
 
@@ -52,11 +47,17 @@ Movies::~Movies()
     moviefile.close();
     std::filesystem::remove(Filename);
     moviefile.open(Filename,std::ios_base::app);
-
     for(const auto& movie : movies)
-        moviefile << serialize(movie);
-
+        moviefile << serializeMovie(movie);
     moviefile.close();
+
+    highscoreFile.close();
+    std::filesystem::remove(HighscoreFilename);
+    highscoreFile.open(HighscoreFilename,std::ios_base::app);
+    for(const auto& score : scores)
+        highscoreFile << serializeScore(score);
+    highscoreFile.close();
+
     endwin();
 }
 
@@ -212,27 +213,6 @@ void Movies::about()
     delwin(w);
 }
 
-void Movies::dice()
-{
-    auto w{ newwin(5,7,2,21) };
-    wattron(w,COLOR_PAIR(GREEN));
-    wattron(w,A_BOLD);
-    char c{'\0'};
-    while(c!='q')
-    {
-        const auto num{Utils::rng(0,5)};
-        const auto side{diceSides[num]};
-        wattron(w,COLOR_PAIR(num));
-        for(int i=0; i<side.size(); ++i)
-            for(int j=0; j<side[i].size(); j++)
-                setText(w, i+1, j+1,&side[i].at(j));
-        box(w,0,0);
-        wrefresh(w);
-        c = getch();
-    }
-    delwin(w);
-}
-
 void Movies::snake()
 {
     constexpr auto xStart{21};
@@ -268,10 +248,22 @@ void Movies::snake()
 
         switch(c)
         {
-            case 'w': dir = dir == Direction::Down ? Direction::Down : Direction::Up; break;
-            case 'a': dir = dir == Direction::Right ? Direction::Right : Direction::Left; break;
-            case 's': dir = dir == Direction::Up ? Direction::Up : Direction::Down; break;
-            case 'd': dir = dir == Direction::Left ? Direction::Left : Direction::Right; break;
+            case 'w':
+            case KEY_UP:
+                dir = dir == Direction::Down ? Direction::Down : Direction::Up; 
+                break;
+            case 'a': 
+            case KEY_LEFT:
+                dir = dir == Direction::Right ? Direction::Right : Direction::Left; 
+                break;
+            case 's': 
+            case KEY_DOWN:
+                dir = dir == Direction::Up ? Direction::Up : Direction::Down; 
+                break;
+            case 'd':
+            case KEY_RIGHT: 
+                dir = dir == Direction::Left ? Direction::Left : Direction::Right; 
+                break;
         }
 
         switch (dir)
@@ -298,8 +290,15 @@ void Movies::snake()
         pos.x = Utils::wrapAround(pos.x,1,width-2);
 
         if(mvwinch(w,pos.y,pos.x) =='*')
+        {
+            if(score > 0)
+            {
+                auto end = std::chrono::system_clock::now();
+                std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+                scores.push_back({score,std::ctime(&end_time)});
+            }
             break;
-        
+        }         
         if(mvwinch(w,pos.y,pos.x) == 'o')
         {
             length+=5;
@@ -438,10 +437,10 @@ void Movies::browse()
         mvwchgat(w,pos,0,1,A_NORMAL,COLOR_PAIR(YELLOW),nullptr);
         switch (c)
         {
-        case 's': case 'S': case KEY_DOWN: { pos++; break; }     
-        case 'w': case 'W': case KEY_UP: { pos--; break; }
-        case 'd': case 'D': { pos+=10; break; }
-        case 'a': case 'A': { pos-=10; break; }
+        case 's': case 'S': case KEY_DOWN:  { pos++; break; }     
+        case 'w': case 'W': case KEY_UP:    { pos--; break; }
+        case 'd': case 'D': case KEY_RIGHT: { pos+=10; break; }
+        case 'a': case 'A': case KEY_LEFT:  { pos-=10; break; }
         default : return;
         }
         if(pos < 1)
@@ -598,7 +597,7 @@ void Movies::rateMovies()
     while(loop){
         switch (getch())
         {
-        case 'w': case 'W':
+        case 'w': case 'W': case KEY_UP:
         {
             wattron(w1,A_STANDOUT);
             wattroff(w2,A_STANDOUT);
@@ -607,7 +606,7 @@ void Movies::rateMovies()
             selection = true;
             break;
         }
-        case 's': case 'S':
+        case 's': case 'S': case KEY_DOWN:
         {            
             wattroff(w1,A_STANDOUT);
             wattron(w2,A_STANDOUT);
@@ -616,7 +615,7 @@ void Movies::rateMovies()
             selection = false;
             break;
         }
-        case 'd': case 'D':
+        case 'd': case 'D': case KEY_RIGHT:
         {
             loop = false;
             wrefresh(w1);
@@ -657,20 +656,42 @@ void Movies::loadMovies()
     std::string str;
     while(std::getline(moviefile,str))
     {
-        const auto movie{deserialize(str)};
+        const auto movie{deserializeMovie(str)};
         if(Utils::validYear(movie.year))
             movies.push_back(movie);
     }
 }
 
-Movies::Movie Movies::deserialize(const std::string& str)
+void Movies::loadHighscores()
 {
-    std::vector<std::string> tokens;
-    std::string token;
-    std::stringstream ss{str};
-    while(std::getline(ss,token,','))
-        tokens.push_back(token);
+    highscoreFile.open(HighscoreFilename);
 
+    std::string str;
+    while(std::getline(highscoreFile,str))
+        if(!str.empty())
+            scores.push_back(deserializeScore(str));
+}
+
+Movies::Score Movies::deserializeScore(const std::string& str)
+{
+    const auto tokens{Utils::tokenize(str)};
+    return {
+        std::atoi(tokens[0].c_str()),
+        tokens[1]
+    };
+}
+
+std::string Movies::serializeScore(const Score& score)
+{
+    std::stringstream ss;
+    ss << score.score << ","
+       << score.timestamp << std::endl;
+    return ss.str();
+}
+
+Movies::Movie Movies::deserializeMovie(const std::string& str)
+{   
+    const auto tokens{Utils::tokenize(str)};
     return{
         std::atof(tokens[0].c_str()),
         tokens[1],
@@ -678,7 +699,7 @@ Movies::Movie Movies::deserialize(const std::string& str)
     };
 }
 
-std::string Movies::serialize(const Movie& movie)
+std::string Movies::serializeMovie(const Movie& movie)
 {
     std::stringstream ss;
     ss << movie.rating<< ","

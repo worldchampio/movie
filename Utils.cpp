@@ -1,6 +1,7 @@
 #include "Utils.h"
 #include <cmath>
 #include <random>
+#include <sstream>
 
 bool Utils::validYear(int year)
 { 
@@ -54,4 +55,14 @@ int Utils::wrapAround(int val, int min, int max)
         val = min;
     
     return val;
+}
+
+std::vector<std::string> Utils::tokenize(const std::string& str)
+{    
+    std::vector<std::string> tokens;
+    std::string token;
+    std::stringstream ss{str};
+    while(std::getline(ss,token,','))
+        tokens.push_back(token);
+    return tokens;
 }
