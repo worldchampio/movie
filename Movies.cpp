@@ -298,7 +298,7 @@ void Movies::snake()
                 scores.push_back({score,std::ctime(&end_time)});
             }
             std::sort(scores.begin(),scores.end(),[](const Score& s1, const Score& s2){ return s1.score > s2.score; });
-            for(int i=0; i<scores.size() && i<height-1; ++i)
+            for(int i=0; i<scores.size() && i<height-4; ++i)
             {
                 const auto str{std::to_string(scores[i].score)+" - "+scores[i].timestamp};
                 setText(w,i+2,2,str.c_str());
@@ -327,8 +327,8 @@ void Movies::snake()
         timeout(timeOut);
         c = getch();
     }
-    setText(w,height/2,width/2 - 5,"GAME OVER");
-    setText(w,height/2+2,width/2 - 5,"Any key to return");
+    setText(w,height-3,width/2,"GAME OVER");
+    setText(w,height-2,width/2 - 5,"Any key to return");
     timeout(-1);
     wrefresh(w);
     getch();
