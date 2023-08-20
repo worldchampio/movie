@@ -66,3 +66,10 @@ std::vector<std::string> Utils::tokenize(const std::string& str)
         tokens.push_back(token);
     return tokens;
 }
+
+std::string Utils::timeStamp()
+{
+    auto end = std::chrono::system_clock::now();
+    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+    return std::ctime(&end_time);
+}

@@ -18,6 +18,23 @@ namespace
 
     void setText(WINDOW* w, int y, int x, const char* text) { mvwprintw(w,y,x,text); }
     void setText(int y, int x, const char* text) { mvprintw(y,x,text); }
+
+    enum class Direction{ Up, Left, Down, Right};
+    auto updateDirection(char c, Direction dir){
+        switch(c)
+        {
+            case 'w': case KEY_UP:
+                return dir == Direction::Down ? Direction::Down : Direction::Up; 
+            case 'a': case KEY_LEFT:
+                return dir == Direction::Right ? Direction::Right : Direction::Left; 
+            case 's': case KEY_DOWN:
+                return dir == Direction::Up ? Direction::Up : Direction::Down; 
+            case 'd': case KEY_RIGHT: 
+                return dir == Direction::Left ? Direction::Left : Direction::Right; 
+            default:
+                return dir;
+        }
+    }
 }
 
 Movies::Movies() :
@@ -29,7 +46,6 @@ Movies::Movies() :
             {"Recommend",       [this]{ recommend(); }},
             {"Reset ratings",   [this]{ reset(); }},
             {"Snake",           [this]{ snake(); }},
-            {"About",           [this]{ about(); }},
             {"Exit", []{ return; }}}
 {  
     loadMovies();
@@ -65,7 +81,6 @@ void Movies::createMenu()
 {
     box(stdscr,0,0);
     constexpr auto x{4};
-
     for(int i=0; i<menuItems.size(); i++)
         setText(i+2,x,menuItems[i].text.c_str());
 
@@ -119,7 +134,7 @@ int Movies::execute()
             case 'd':
             case KEY_ENTER:
                 if(pos >= menuItems.size()-1)
-                    return 0;
+                    return endwin();
                 else
                 {
                     menuItems.at(pos).fcn();
@@ -135,7 +150,7 @@ int Movies::execute()
         refresh();
         c = getch();
     }
-    return 0;
+    return endwin();
 }
 
 void Movies::recommend()
@@ -186,45 +201,14 @@ Movies::Movie Movies::highestRatedMovie()
     return highestRated;    
 }  
 
-void Movies::about()
-{
-    const std::vector str{
-        "Standard ELO ranking algorithm: ",
-        " ",
-        "                 1",
-        "Ea = ------------------------",
-        "     1 + 10^( (Rb - Ra)/400 )",
-        " ",
-        "                 1",
-        "Eb = ------------------------",
-        "     1 + 10^( (Ra - Rb)/400 )",
-        " ",
-        "Ra,new = Ra + K * (score - Ea) , K = 32",
-        "Rb,new = Rb + K * (score - Eb) , K = 32"
-    };
-    auto w{ newwin(str.size()+4,46,1,21) };
-    wattron(w,COLOR_PAIR(GREEN));
-    wattron(w,A_BOLD);
-    for(int i=0; i<str.size(); i++)
-        setText(w,i+2,3,str[i]);
-    box(w,0,0);
-    wrefresh(w);
-    getch();
-    delwin(w);
-}
-
 void Movies::snake()
 {
     constexpr auto xStart{21};
     const auto width{COLS-xStart-3};
     const auto height{LINES-2};
     auto w{ newwin(height,width,1,xStart+2) };
-
     Utils::Position pos{height/2, width/2};
-
     box(w,0,0);
-
-    enum class Direction{ Up, Left, Down, Right};
     Direction dir;
     char c{'\0'};
     std::vector<Utils::Position> snake;
@@ -246,27 +230,7 @@ void Movies::snake()
             setText(w,y2,x2,"o");
             totalCookies+=2;
         }
-
-        switch(c)
-        {
-            case 'w':
-            case KEY_UP:
-                dir = dir == Direction::Down ? Direction::Down : Direction::Up; 
-                break;
-            case 'a': 
-            case KEY_LEFT:
-                dir = dir == Direction::Right ? Direction::Right : Direction::Left; 
-                break;
-            case 's': 
-            case KEY_DOWN:
-                dir = dir == Direction::Up ? Direction::Up : Direction::Down; 
-                break;
-            case 'd':
-            case KEY_RIGHT: 
-                dir = dir == Direction::Left ? Direction::Left : Direction::Right; 
-                break;
-        }
-
+        dir = updateDirection(c,dir);
         switch (dir)
         {
             case Direction::Up: 
@@ -293,11 +257,7 @@ void Movies::snake()
         if(mvwinch(w,pos.y,pos.x) =='*')
         {
             if(score > 0)
-            {
-                auto end = std::chrono::system_clock::now();
-                std::time_t end_time = std::chrono::system_clock::to_time_t(end);
-                scores.push_back({score,std::ctime(&end_time)});
-            }        
+                scores.push_back({score,Utils::timeStamp()});
             break;
         }         
         if(mvwinch(w,pos.y,pos.x) == 'o')
@@ -323,7 +283,7 @@ void Movies::snake()
         timeout(timeOut);
         c = getch();
     }
-    setText(w,height-3,width/2,"GAME OVER");
+    setText(w,height-3,width/2,c == 'q' ? "GAME QUIT" : "GAME OVER");
     setText(w,height-2,width/2 - 5,"Any key to return");
     std::sort(scores.begin(),scores.end(),[](const Score& s1, const Score& s2){ return s1.score > s2.score; });
     for(int i=0; i<scores.size() && i<height-4; ++i)
@@ -366,13 +326,10 @@ void Movies::reset()
         {
             if(ratingCache.empty())
                 break;
-                
-            for(auto& movie : movies)
-            {
-                const auto it{ ratingCache.find(movie.name) };
-                if(it != ratingCache.end()) [[likely]]
+
+            for(auto& movie : movies) // is this trash??
+                if(const auto it{ ratingCache.find(movie.name) }; it != ratingCache.end()) [[likely]]
                     movie.rating = it->second;
-            }
             break;
         }
         default:
@@ -432,6 +389,7 @@ void Movies::browse()
     }};
     drawMovies(shift);
     box(w,0,0);
+
     const std::string title{std::to_string(movies.size())+" movies loaded."};
     setText(w,0,2,title.c_str());
     mvwchgat(w,0,2,title.size(),A_BOLD,COLOR_PAIR(YELLOW),nullptr);

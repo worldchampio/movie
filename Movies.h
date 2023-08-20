@@ -40,7 +40,6 @@ private:
     void browse();
     void recommend();
     void search();
-    void about();
     void snake();
     void reset();
     

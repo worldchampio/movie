@@ -12,4 +12,5 @@ namespace Utils
     std::pair<double,double> computeElo(double Ra, double Rb, bool victor);
     std::pair<int,int> getTwoRngs(int min, int max);
     std::vector<std::string> tokenize(const std::string& str);
+    std::string timeStamp();
 }
