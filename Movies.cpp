@@ -3,11 +3,9 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <thread>
 
 namespace
 {
-    std::mutex mtx;
     constexpr auto Filename{"movies.txt"};
     constexpr auto CYAN{1};
     constexpr auto YELLOW{2};
@@ -22,8 +20,7 @@ namespace
         {"    O","  O  ","O    "},
         {"O   O","     ","O   O"},
         {"O   O","  O  ","O   O"},
-        {"O   O","O   O","O   O"}
-    };
+        {"O   O","O   O","O   O"}};
 
     void setText(WINDOW* w, int y, int x, const char* text) { mvwprintw(w,y,x,text); }
     void setText(int y, int x, const char* text) { mvprintw(y,x,text); }
@@ -238,7 +235,7 @@ void Movies::dice()
 
 void Movies::snake()
 {
-    constexpr auto xStart{17+4};
+    constexpr auto xStart{21};
     const auto width{COLS-xStart-3};
     const auto height{LINES-2};
     auto w{ newwin(height,width,1,xStart+2) };
@@ -251,10 +248,24 @@ void Movies::snake()
     Direction dir;
     char c{'\0'};
     std::vector<Utils::Position> snake;
+    int length{10};
+    int score{0};
+    int totalCookies{0};
+    int timeOut{60};
     while(c!='q')
     {   
         setText(w,pos.y,pos.x," ");
         snake.push_back(pos);
+
+        if(Utils::rng(0,100) < 50 && totalCookies < 10)
+        {
+            const auto[y1,y2]{Utils::getTwoRngs(1,height-2)};
+            const auto[x1,x2]{Utils::getTwoRngs(1,width-2)};
+            setText(w,y1,x1,"o");
+            setText(w,y2,x2,"o");
+            totalCookies+=2;
+        }
+
         switch(c)
         {
             case 'w': dir = dir == Direction::Down ? Direction::Down : Direction::Up; break;
@@ -265,17 +276,39 @@ void Movies::snake()
 
         switch (dir)
         {
-            case Direction::Up: --pos.y; break;
-            case Direction::Left: pos.x-=2; break;
-            case Direction::Down: ++pos.y; break;
-            case Direction::Right: pos.x+=2; break;
+            case Direction::Up: 
+                --pos.y; 
+                timeOut = 60;
+                break;
+            case Direction::Left: 
+                --pos.x; 
+                timeOut = 30;
+                break;
+            case Direction::Down: 
+                ++pos.y; 
+                timeOut = 60;
+                break;
+            case Direction::Right: 
+                ++pos.x; 
+                timeOut = 30;
+                break;
         }
 
         pos.y = Utils::wrapAround(pos.y,1,height-2);
         pos.x = Utils::wrapAround(pos.x,1,width-2);
 
-        setText(w,0,3,("x,y : ["+std::to_string(pos.y) +","+ std::to_string(pos.x)+"]").c_str());
-        while(snake.size() > 15)
+        if(mvwinch(w,pos.y,pos.x) =='*')
+            break;
+        
+        if(mvwinch(w,pos.y,pos.x) == 'o')
+        {
+            length+=5;
+            ++score;
+            --totalCookies;
+        }
+
+        setText(w,0,3,("Score: "+std::to_string(score)).c_str());
+        while(snake.size() > length)
         {
             auto beg{snake.begin()};
             setText(w,beg->y,beg->x," ");
@@ -286,9 +319,14 @@ void Movies::snake()
             setText(w,y,x,"*"); 
 
         wrefresh(w);
-        timeout(60);
+        timeout(timeOut);
         c = getch();
     }
+    setText(w,height/2,width/2 - 5,"GAME OVER");
+    setText(w,height/2+2,width/2 - 5,"Any key to return");
+    timeout(-1);
+    wrefresh(w);
+    getch();
     delwin(w);
 }
 
@@ -540,7 +578,7 @@ void Movies::search()
 
 void Movies::rateMovies()
 {
-    const auto[firstNumber,secondNumber]{Utils::getTwoRngs(movies.size()-1)};
+    const auto[firstNumber,secondNumber]{Utils::getTwoRngs(0,movies.size()-1)};
     const auto firstMovie{movies[firstNumber]};
     const auto secondMovie{movies[secondNumber]};
     auto w1{ newwin(4,globalWidth,2,21) };

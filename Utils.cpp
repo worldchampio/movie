@@ -36,12 +36,12 @@ bool Utils::stringEquals(std::string a, std::string b)
     return a.find(b) != std::string::npos;
 }
 
-std::pair<int,int> Utils::getTwoRngs(int max)
+std::pair<int,int> Utils::getTwoRngs(int min,int max)
 {
-    const auto firstRng{rng(0,max)};    
+    const auto firstRng{rng(min,max)};    
     int secondRng{firstRng};
     while(secondRng==firstRng)
-        secondRng=rng(0,max);
+        secondRng=rng(min,max);
     
     return {firstRng, secondRng};
 }

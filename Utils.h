@@ -10,5 +10,5 @@ namespace Utils
     bool validYear(int year);
     bool stringEquals(std::string a, std::string b);
     std::pair<double,double> computeElo(double Ra, double Rb, bool victor);
-    std::pair<int,int> getTwoRngs(int max);
+    std::pair<int,int> getTwoRngs(int min, int max);
 }
