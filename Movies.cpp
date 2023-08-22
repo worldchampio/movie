@@ -286,9 +286,10 @@ void Movies::snake()
     setText(w,height-3,width/2,c == 'q' ? "GAME QUIT" : "GAME OVER");
     setText(w,height-2,width/2 - 5,"Any key to return");
     std::sort(scores.begin(),scores.end(),[](const Score& s1, const Score& s2){ return s1.score > s2.score; });
+    wattron(w,A_UNDERLINE);
     for(int i=0; i<scores.size() && i<height-4; ++i)
     {
-        const auto str{std::to_string(scores[i].score)+" - "+scores[i].timestamp};
+        const auto str{std::to_string(scores[i].score)+"\t"+scores[i].timestamp};
         setText(w,i+2,2,str.c_str());
     }    
     timeout(-1);
