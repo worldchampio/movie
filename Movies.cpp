@@ -287,11 +287,19 @@ void Movies::snake()
     setText(w,height-2,width/2 - 5,"Any key to return");
     std::sort(scores.begin(),scores.end(),[](const Score& s1, const Score& s2){ return s1.score > s2.score; });
     wattron(w,A_UNDERLINE);
+
     for(int i=0; i<scores.size() && i<height-4; ++i)
     {
-        const auto str{std::to_string(scores[i].score)+"\t"+scores[i].timestamp};
+        const auto currentScore{scores[i].score};
+        const auto str{std::to_string(currentScore)+"\t"+scores[i].timestamp};
         setText(w,i+2,2,str.c_str());
     }    
+
+    if(score == scores.front().score)
+    {
+        wattron(w,COLOR_PAIR(MAGENTA));
+        setText(w,0,2,"NEW HIGHSCORE");
+    }
     timeout(-1);
     wrefresh(w);
     getch();
@@ -336,6 +344,8 @@ void Movies::reset()
         default:
             break;
     }
+    wrefresh(w);
+    getch();
     delwin(w);
 }
 
