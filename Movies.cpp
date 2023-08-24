@@ -1,8 +1,6 @@
 #include "Movies.h"
-#include "Utils.h"
-#include <iostream>
 #include <fstream>
-#include <sstream>
+#include <iostream>
 
 namespace
 {
@@ -35,6 +33,13 @@ namespace
                 return dir;
         }
     }
+
+    struct Diff
+    {
+        double diff; 
+        int number; 
+        WINDOW* w;
+    };
 }
 
 Movies::Movies() :
@@ -60,24 +65,17 @@ Movies::Movies() :
 
 Movies::~Movies()
 {
-    moviefile.close();
-    highscoreFile.close();
-
     std::filesystem::remove(Filename);
     std::filesystem::remove(HighscoreFilename);
- 
-    moviefile.open(Filename,std::ios_base::app);
-    highscoreFile.open(HighscoreFilename,std::ios_base::app);
- 
-    for(const auto& movie : movies)
-        moviefile << serializeMovie(movie);
-
-    for(const auto& score : scores)
-        highscoreFile << serializeScore(score);
-
+    auto moviefile = std::fstream{Filename,std::ios_base::app};
+    auto highscoreFile = std::fstream{HighscoreFilename,std::ios_base::app};
+    
+    for(const auto& movie : movies) moviefile << serialize(movie);
+    for(const auto& score : scores) highscoreFile << serialize(score);
+    
     moviefile.close();
     highscoreFile.close();
-
+    
     endwin();
 }
 
@@ -610,18 +608,18 @@ void Movies::rateMovies()
         if(selection.has_value())
             newRatings = Utils::computeElo(firstMovie.rating,secondMovie.rating,selection.value());
 
+
         if(newRatings.has_value())
         {
             const auto diff1{ newRatings.value().first - firstMovie.rating };
             const auto diff2{ newRatings.value().second - secondMovie.rating };
-            ratedMovies[firstNumber] += diff1;
-            ratedMovies[secondNumber] += diff2;
-            movies[firstNumber].rating += diff1;
-            movies[secondNumber].rating += diff2;
-            const auto diff1Str{ "Rating: "+ std::string(diff1 > 0 ? "+":"") + std::to_string(static_cast<int>(diff1)) };
-            const auto diff2Str{ "Rating: "+ std::string(diff2 > 0 ? "+":"") + std::to_string(static_cast<int>(diff2)) };
-            setText(w1, 2, 2, diff1Str.c_str());
-            setText(w2, 2, 2, diff2Str.c_str());
+            for(const auto [diff,num,win] : { Diff{diff1,firstNumber,w1}, Diff{diff2,secondNumber,w2}}) 
+            {
+                ratedMovies[num] += diff;
+                movies[num].rating += diff;
+                const auto diffStr{ "Rating: "+ std::string(diff1 > 0 ? "+":"") + std::to_string(static_cast<int>(diff)) };
+                setText(win, 2, 2, diffStr.c_str());
+            }
         }
         wrefresh(w1);
         wrefresh(w2);
@@ -632,61 +630,25 @@ void Movies::rateMovies()
 
 void Movies::loadMovies()
 {
-    moviefile.open(Filename);
-
+    auto moviefile{std::fstream{Filename}};
     std::string str;
     while(std::getline(moviefile,str))
     {
-        const auto movie{deserializeMovie(str)};
+        const auto movie{deserialize<Movie>(str)};
         if(Utils::validYear(movie.year))
             movies.push_back(movie);
     }
+    moviefile.close();
 }
 
 void Movies::loadHighscores()
 {
-    highscoreFile.open(HighscoreFilename);
-
+    auto highscoreFile{std::fstream(HighscoreFilename)};
     std::string str;
     while(std::getline(highscoreFile,str))
         if(!str.empty())
-            scores.push_back(deserializeScore(str));
-}
-
-Movies::Score Movies::deserializeScore(const std::string& str)
-{
-    const auto tokens{Utils::tokenize(str)};
-    return {
-        std::atoi(tokens[0].c_str()),
-        tokens[1]
-    };
-}
-
-std::string Movies::serializeScore(const Score& score)
-{
-    std::stringstream ss;
-    ss << score.score << ","
-       << score.timestamp << std::endl;
-    return ss.str();
-}
-
-Movies::Movie Movies::deserializeMovie(const std::string& str)
-{   
-    const auto tokens{Utils::tokenize(str)};
-    return{
-        std::atof(tokens[0].c_str()),
-        tokens[1],
-        std::atoi(tokens[2].c_str())
-    };
-}
-
-std::string Movies::serializeMovie(const Movie& movie)
-{
-    std::stringstream ss;
-    ss << movie.rating<< ","
-       << movie.name  << ","
-       << movie.year  << std::endl;
-    return ss.str();
+            scores.push_back(deserialize<Score>(str));
+    highscoreFile.close();
 }
 
 std::string Movies::displayString(const Movie& movie, const std::string& preStr)
