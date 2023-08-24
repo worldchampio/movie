@@ -617,7 +617,7 @@ void Movies::rateMovies()
             {
                 ratedMovies[num] += diff;
                 movies[num].rating += diff;
-                const auto diffStr{ "Rating: "+ std::string(diff1 > 0 ? "+":"") + std::to_string(static_cast<int>(diff)) };
+                const auto diffStr{ "Rating: "+ std::string(diff > 0 ? "+":"") + std::to_string(static_cast<int>(diff)) };
                 setText(win, 2, 2, diffStr.c_str());
             }
         }
