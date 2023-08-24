@@ -277,7 +277,7 @@ void Movies::snake()
             setText(w,beg->y,beg->x," ");
             snake.erase(beg);
         }
-        
+
         for(const auto[y,x] : snake)
             setText(w,y,x,"*"); 
 
@@ -391,13 +391,13 @@ void Movies::browse()
     {
         if(shift>=movies.size()-1)
             return;
-        for(int y=1; y<movies.size(); y++)
+        for(int y=0; y<movies.size(); y++)
         {
             const int adjustedShift{ std::clamp(y+shift,0,lastMovie) };
             const auto& currentMovie{movies[adjustedShift]};
             std::string bigSpace; bigSpace.resize(COLS-xStart-4,' ');
-            setText(w,y,0,bigSpace.c_str());
-            setText(w,y,2,displayString(currentMovie).c_str()); 
+            setText(w,y+1,0,bigSpace.c_str());
+            setText(w,y+1,2,(std::to_string(adjustedShift+1)+"\t"+displayString(currentMovie)).c_str()); 
         }
     }};
     drawMovies(shift);
@@ -431,7 +431,7 @@ void Movies::browse()
         else if ( pos > LINES-4)
         {
             pos = LINES-4;
-            if(shift+pos < lastMovie)
+            if(shift+pos < lastMovie+1)
                 shift++;
         }
         shift = std::clamp(shift,0,lastMovie);
