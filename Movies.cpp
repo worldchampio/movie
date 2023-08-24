@@ -639,6 +639,7 @@ void Movies::loadMovies()
             movies.push_back(movie);
     }
     moviefile.close();
+    std::sort(movies.begin(),movies.end(),[](const Movie& m1, const Movie& m2){ return m1.rating > m2.rating; });
 }
 
 void Movies::loadHighscores()
