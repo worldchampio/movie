@@ -49,12 +49,7 @@ std::pair<int,int> Utils::getTwoRngs(int min,int max)
 
 int Utils::wrapAround(int val, int min, int max)
 {
-    if(val < min)
-        val = max;
-    if(val > max)
-        val = min;
-    
-    return val;
+    return val < min ? max : val > max ? min : val;
 }
 
 std::vector<std::string> Utils::tokenize(const std::string& str)

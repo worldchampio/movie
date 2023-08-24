@@ -38,15 +38,15 @@ namespace
 }
 
 Movies::Movies() :
-        menuItems{
-            {"Add movie.",      [this]{ addMovie(); }},
-            {"Rate two movies", [this]{ for(int i=0; i<10; i++) rateMovies(); }},
-            {"Search for movie",[this]{ search(); }},
-            {"Browse",          [this]{ browse(); }},
-            {"Recommend",       [this]{ recommend(); }},
-            {"Reset ratings",   [this]{ reset(); }},
-            {"Snake",           [this]{ snake(); }},
-            {"Exit", []{ return; }}}
+    menuItems{
+        {"Add movie.",      [this]{ addMovie(); }},
+        {"Rate two movies", [this]{ for(int i=0; i<10; i++) rateMovies(); }},
+        {"Search for movie",[this]{ search(); }},
+        {"Browse",          [this]{ browse(); }},
+        {"Recommend",       [this]{ recommend(); }},
+        {"Reset ratings",   [this]{ reset(); }},
+        {"Snake",           [this]{ snake(); }},
+        {"Exit", []{ return; }}}
 {  
     loadMovies();
     loadHighscores();
@@ -61,17 +61,21 @@ Movies::Movies() :
 Movies::~Movies()
 {
     moviefile.close();
+    highscoreFile.close();
+
     std::filesystem::remove(Filename);
+    std::filesystem::remove(HighscoreFilename);
+ 
     moviefile.open(Filename,std::ios_base::app);
+    highscoreFile.open(HighscoreFilename,std::ios_base::app);
+ 
     for(const auto& movie : movies)
         moviefile << serializeMovie(movie);
-    moviefile.close();
 
-    highscoreFile.close();
-    std::filesystem::remove(HighscoreFilename);
-    highscoreFile.open(HighscoreFilename,std::ios_base::app);
     for(const auto& score : scores)
         highscoreFile << serializeScore(score);
+
+    moviefile.close();
     highscoreFile.close();
 
     endwin();
