@@ -42,6 +42,7 @@ private:
     void recommend();
     void search();
     void snake();
+    void gameOfLife();
     void reset();
     
     Movie highestRatedMovie();

@@ -1,6 +1,7 @@
 #include "Movies.h"
 #include <fstream>
 #include <iostream>
+#include <thread>
 
 namespace
 {
@@ -15,7 +16,6 @@ namespace
     constexpr auto globalWidth{90};
 
     void setText(WINDOW* w, int y, int x, const char* text) { mvwprintw(w,y,x,text); }
-    void setText(int y, int x, const char* text) { mvprintw(y,x,text); }
 
     enum class Direction{ Up, Left, Down, Right};
     auto updateDirection(char c, Direction dir){
@@ -51,6 +51,7 @@ Movies::Movies() :
         {"Recommend",       [this]{ recommend(); }},
         {"Reset ratings",   [this]{ reset(); }},
         {"Snake",           [this]{ snake(); }},
+        {"Game of Life",    [this]{ gameOfLife(); }},
         {"Exit", []{ return; }}}
 {  
     loadMovies();
@@ -84,7 +85,7 @@ void Movies::createMenu()
     box(stdscr,0,0);
     constexpr auto x{4};
     for(int i=0; i<menuItems.size(); i++)
-        setText(i+2,x,menuItems[i].text.c_str());
+        setText(stdscr,i+2,x,menuItems[i].text.c_str());
 
     const std::vector helpItems{
         "SHIFT+9 - Backspace",
@@ -95,7 +96,7 @@ void Movies::createMenu()
     };
 
     for(int i=0; i<helpItems.size(); i++)
-        setText(LINES-i-3,x,helpItems[i]);
+        setText(stdscr,LINES-i-3,x,helpItems[i]);
 }
 
 void Movies::initColors()
@@ -119,7 +120,7 @@ int Movies::execute()
             case 'W':
             case 'w':
             {
-                setText(pos+2,2," ");
+                setText(stdscr,pos+2,2," ");
                 pos--;
                 break;
             }
@@ -127,7 +128,7 @@ int Movies::execute()
             case 'S':
             case 's':
             {
-                setText(pos+2,2," ");
+                setText(stdscr,pos+2,2," ");
                 pos++;
                 break;
             }
@@ -146,7 +147,7 @@ int Movies::execute()
 
         pos = Utils::wrapAround(pos,0,menuItems.size()-1);
             
-        setText(pos+2,2,"*");
+        setText(stdscr,pos+2,2,"*");
         mvchgat(pos+2,2,1,A_STANDOUT,COLOR_PAIR(1),nullptr);
         box(stdscr,0,0);
         refresh();
@@ -305,6 +306,64 @@ void Movies::snake()
     timeout(-1);
     wrefresh(w);
     getch();
+    delwin(w);
+}
+
+void Movies::gameOfLife()
+{
+    constexpr auto xStart{21};
+    const auto width{COLS-xStart-3};
+    const auto height{LINES-2};
+    auto w{ newwin(height,width,1,xStart+2) };
+    char c{'\0'};
+
+    enum class Status{Dead,Alive};
+    std::vector<std::vector<Status>> backPane;
+    for(int i=0; i<height; ++i)
+    {
+        backPane.push_back(std::vector<Status>{});
+        for(int j=0; j<width; j++)
+        {
+            backPane[i].push_back(Utils::rng(0,10) < 6 ? Status::Dead : Status::Alive);
+        }
+    }
+    box(w,0,0);
+    wrefresh(w);
+    timeout(30);
+    while(c!='q')
+    {
+        int liveCount{0};
+        for(int y=1; y<height-1; ++y)
+            for(int x=1; x<width-1; ++x)
+            {
+                const auto alive{backPane[y][x]==Status::Alive};
+                liveCount+=alive;
+                setText(w,y,x,alive ? "X":" ");
+            }
+
+        setText(w,0,2,("[\tLive: "+std::to_string(liveCount)+"\t]").c_str());
+
+        for(int y=1; y<backPane.size(); ++y)
+            for(int x=1; x<backPane[y].size(); ++x)
+            {
+                const bool alive{mvwinch(w,y,x)=='X'};
+                int neighbours{0};
+                for(int innerY = y-1; innerY < y+2; ++innerY)
+                    for(int innerX = x-1; innerX < x+2; ++innerX)
+                    {
+                        if(innerX==x && innerY==y)
+                            continue;
+                        if(mvwinch(w,innerY,innerX)=='X')
+                            neighbours++;
+                    }
+                    
+                backPane[y][x] = alive ? (neighbours>1 && neighbours<4)?Status::Alive:Status::Dead : (neighbours==3) ? Status::Alive:Status::Dead;
+            }
+
+        c = getch();
+        wrefresh(w);
+    }
+    timeout(-1);
     delwin(w);
 }
 
