@@ -317,8 +317,8 @@ void Movies::gameOfLife()
     auto w{ newwin(height,width,1,xStart+2) };
     char c{'\0'};
     
-    constexpr auto aliveChar{'.'};
-    constexpr auto aliveStr{"."};  
+    constexpr auto aliveChar{'x'};
+    constexpr auto aliveStr{"x"};  
     enum class Status{Dead,Alive};
     std::vector<std::vector<Status>> backPane;
     for(int i=0; i<height; ++i)
