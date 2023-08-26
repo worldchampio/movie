@@ -271,7 +271,7 @@ void Movies::snake()
             ++cookieLimit;
         }
 
-        setText(w,0,3,("Score: "+std::to_string(score)).c_str());
+        setText(w,0,2,("[\tScore: "+std::to_string(score)+"\t]").c_str());
         while(snake.size() > length)
         {
             auto beg{snake.begin()};
@@ -316,7 +316,9 @@ void Movies::gameOfLife()
     const auto height{LINES-2};
     auto w{ newwin(height,width,1,xStart+2) };
     char c{'\0'};
-
+    
+    constexpr auto aliveChar{'.'};
+    constexpr auto aliveStr{"."};  
     enum class Status{Dead,Alive};
     std::vector<std::vector<Status>> backPane;
     for(int i=0; i<height; ++i)
@@ -330,33 +332,35 @@ void Movies::gameOfLife()
     box(w,0,0);
     wrefresh(w);
     timeout(30);
+    int loops{0};
     while(c!='q')
     {
+        loops++;
         int liveCount{0};
         for(int y=1; y<height-1; ++y)
             for(int x=1; x<width-1; ++x)
             {
                 const auto alive{backPane[y][x]==Status::Alive};
                 liveCount+=alive;
-                setText(w,y,x,alive ? "X":" ");
+                setText(w,y,x,alive ? aliveStr : " ");
             }
 
-        setText(w,0,2,("[\tLive: "+std::to_string(liveCount)+"\t]").c_str());
+        setText(w,0,2,("[ Live: "+std::to_string(liveCount)+",\ti:"+std::to_string(loops)+" ]").c_str());
 
         for(int y=1; y<backPane.size(); ++y)
             for(int x=1; x<backPane[y].size(); ++x)
             {
-                const bool alive{mvwinch(w,y,x)=='X'};
+                const bool alive{mvwinch(w,y,x)==aliveChar};
                 int neighbours{0};
                 for(int innerY = y-1; innerY < y+2; ++innerY)
                     for(int innerX = x-1; innerX < x+2; ++innerX)
                     {
                         if(innerX==x && innerY==y)
                             continue;
-                        if(mvwinch(w,innerY,innerX)=='X')
+                        if(mvwinch(w,innerY,innerX)==aliveChar)
                             neighbours++;
                     }
-                    
+
                 backPane[y][x] = alive ? (neighbours>1 && neighbours<4)?Status::Alive:Status::Dead : (neighbours==3) ? Status::Alive:Status::Dead;
             }
 
@@ -406,7 +410,6 @@ void Movies::reset()
             break;
     }
     wrefresh(w);
-    getch();
     delwin(w);
 }
 
