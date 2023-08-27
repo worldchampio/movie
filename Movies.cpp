@@ -52,6 +52,7 @@ Movies::Movies() :
         {"Reset ratings",   [this]{ reset(); }},
         {"Snake",           [this]{ snake(); }},
         {"Game of Life",    [this]{ gameOfLife(); }},
+        {"Battleships",     [this]{ battleShips(); }},
         {"Exit", []{ return; }}}
 {  
     loadMovies();
@@ -376,6 +377,66 @@ void Movies::gameOfLife()
     setText(w,height/2,width/2-5,"Terminated");
     wrefresh(w);
     getch();
+    delwin(w);
+}
+
+void Movies::battleShips()
+{
+    constexpr auto xStart{21};
+    const auto width{COLS-xStart-3};
+    const auto height{LINES-2};
+    auto w{ newwin(height,width,1,xStart+2) };
+    int colcount{1};
+    for(auto startX : {2, 38})
+    {
+        setText(w,1,startX,"| A | B | C | D | E | F | G | H |");
+        for(int i=2; i<23; ++i)
+        {
+            const auto isTen{colcount == 10};
+            const auto even{i%2==0};
+            setText(w,i,isTen && !even ? startX-1: startX,(even ? "+---+---+---+---+---+---+---+---+":(std::to_string(colcount++)+"   |   |   |   |   |   |   |   |").c_str()));
+        }
+        colcount = 1;
+    }
+    setText(w,3,4,"X");
+
+    char c{'\0'};
+    Utils::Position pos{3,4};
+    Utils::Position posNoOffset;
+    while(c!='q')
+    {
+        setText(w,pos.y,pos.x," ");
+        switch(c)
+        {
+            case 'w': 
+                posNoOffset.y--;
+                pos.y-=2; 
+                break;
+            case 'a': 
+                posNoOffset.x--;
+                pos.x-=4; 
+                break;
+            case 's': 
+                posNoOffset.y++;
+                pos.y+=2; 
+                break;
+            case 'd':
+                posNoOffset.x++;
+                pos.x+=4; 
+                break;
+        }
+        posNoOffset.y = Utils::wrapAround(posNoOffset.y,1,10);
+        posNoOffset.x = Utils::wrapAround(posNoOffset.x,1,10);
+        pos.y = Utils::wrapAround(pos.y,3,21);
+        pos.x = Utils::wrapAround(pos.x,4,32);
+        wattron(w,COLOR_PAIR(GREEN));
+        setText(w,pos.y,pos.x,"X");
+        wattroff(w,COLOR_PAIR(GREEN));
+        setText(w,0,2,(" y:"+std::to_string(posNoOffset.y)+"\tx:"+std::to_string(posNoOffset.x)+"   ").c_str());
+        wrefresh(w);
+        c = getch();
+    }
+    wrefresh(w);
     delwin(w);
 }
 

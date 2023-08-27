@@ -43,6 +43,7 @@ private:
     void search();
     void snake();
     void gameOfLife();
+    void battleShips();
     void reset();
     
     Movie highestRatedMovie();
