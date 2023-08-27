@@ -115,12 +115,12 @@ int Movies::execute()
     char c{'\0'};
     int pos = 0;
     while(c!='q'){
+        setText(stdscr,pos+2,2," ");
         switch(c){
             case KEY_UP:
             case 'W':
             case 'w':
             {
-                setText(stdscr,pos+2,2," ");
                 pos--;
                 break;
             }
@@ -128,7 +128,6 @@ int Movies::execute()
             case 'S':
             case 's':
             {
-                setText(stdscr,pos+2,2," ");
                 pos++;
                 break;
             }
@@ -316,11 +315,12 @@ void Movies::gameOfLife()
     const auto height{LINES-2};
     auto w{ newwin(height,width,1,xStart+2) };
     char c{'\0'};
-    
-    constexpr auto aliveChar{'x'};
-    constexpr auto aliveStr{"x"};  
+    constexpr auto aliveChar{'X'};
+    constexpr auto aliveStr{"X"};
+    static_assert(aliveStr[0]==aliveChar,"Use same character for these");
     enum class Status{Dead,Alive};
     std::vector<std::vector<Status>> backPane;
+    Utils::Queue<int> lastElements{5};
     for(int i=0; i<height; ++i)
     {
         backPane.push_back(std::vector<Status>{});
@@ -344,6 +344,10 @@ void Movies::gameOfLife()
                 liveCount+=alive;
                 setText(w,y,x,alive ? aliveStr : " ");
             }
+
+        lastElements.add(liveCount);;
+        if(loops > 5 && std::all_of(lastElements.begin(),lastElements.end(),[&lastElements](int i){ return i==lastElements.get(0);}))
+            break;
 
         setText(w,0,2,("[ Live: "+std::to_string(liveCount)+",\ti:"+std::to_string(loops)+" ]").c_str());
 

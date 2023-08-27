@@ -15,22 +15,22 @@ public:
         int year{};
     };
 
+
+    Movies();
+    ~Movies();
+
+
+    int execute();
+private:
     struct Score
     {
         int score{};
         std::string timestamp;
     };
-
-    Movies();
-    ~Movies();
-
     struct MenuItem{
         std::string text;
         std::function<void()> fcn;
     };
-
-    int execute();
-private:
     void loadMovies();
     void loadHighscores();
     void createMenu();

@@ -13,4 +13,25 @@ namespace Utils
     std::pair<int,int> getTwoRngs(int min, int max);
     std::vector<std::string> tokenize(const std::string& str);
     std::string timeStamp();
+
+    template<class T>
+    class Queue
+    {
+    public:
+        Queue(int size) : size{size} {}
+        void add(T element)
+        {
+            buf.push_back(element);
+            if(buf.size()>size)
+                buf.erase(buf.begin());
+        }
+        T get(int i) {
+            return i<size ? buf[i] : T{};
+        }
+        auto begin() { return buf.begin(); }
+        auto end() { return buf.end(); }
+    private:
+        std::vector<T> buf;
+        int size{0};
+    };
 }
