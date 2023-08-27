@@ -315,9 +315,9 @@ void Movies::gameOfLife()
     const auto height{LINES-2};
     auto w{ newwin(height,width,1,xStart+2) };
     char c{'\0'};
-    constexpr auto aliveChar{'X'};
-    constexpr auto aliveStr{"X"};
-    static_assert(aliveStr[0]==aliveChar,"Use same character for these");
+    constexpr auto cellChar{'X'};
+    constexpr auto cellStr{"X"};
+    static_assert(cellStr[0]==cellChar,"Use same character for these");
     enum class Status{Dead,Alive};
     std::vector<std::vector<Status>> backPane;
     Utils::Queue<int> lastElements{5};
@@ -335,6 +335,7 @@ void Movies::gameOfLife()
     int loops{0};
     while(c!='q')
     {
+        auto timer{ Utils::Timer{}};
         loops++;
         int liveCount{0};
         for(int y=1; y<height-1; ++y)
@@ -342,36 +343,39 @@ void Movies::gameOfLife()
             {
                 const auto alive{backPane[y][x]==Status::Alive};
                 liveCount+=alive;
-                setText(w,y,x,alive ? aliveStr : " ");
+                setText(w,y,x,alive ? cellStr : " ");
             }
 
         lastElements.add(liveCount);;
         if(loops > 5 && std::all_of(lastElements.begin(),lastElements.end(),[&lastElements](int i){ return i==lastElements.get(0);}))
             break;
 
-        setText(w,0,2,("[ Live: "+std::to_string(liveCount)+",\ti:"+std::to_string(loops)+" ]").c_str());
-
         for(int y=1; y<backPane.size(); ++y)
             for(int x=1; x<backPane[y].size(); ++x)
             {
-                const bool alive{mvwinch(w,y,x)==aliveChar};
                 int neighbours{0};
                 for(int innerY = y-1; innerY < y+2; ++innerY)
                     for(int innerX = x-1; innerX < x+2; ++innerX)
                     {
                         if(innerX==x && innerY==y)
                             continue;
-                        if(mvwinch(w,innerY,innerX)==aliveChar)
+                        if(mvwinch(w,innerY,innerX)==cellChar)
                             neighbours++;
                     }
 
-                backPane[y][x] = alive ? (neighbours>1 && neighbours<4)?Status::Alive:Status::Dead : (neighbours==3) ? Status::Alive:Status::Dead;
+                const auto newState{mvwinch(w,y,x)==cellChar ? (neighbours>1 && neighbours<4) : (neighbours==3)};
+                backPane[y][x] = newState ? Status::Alive : Status::Dead;
             }
 
+        setText(w,0,2,("[ Live: "+std::to_string(liveCount)+",\ti:"+std::to_string(loops)+"\tt:"+timer.get()+" ]").c_str());
         c = getch();
         wrefresh(w);
     }
     timeout(-1);
+    wattron(w,COLOR_PAIR(RED));
+    setText(w,height/2,width/2-5,"Terminated");
+    wrefresh(w);
+    getch();
     delwin(w);
 }
 

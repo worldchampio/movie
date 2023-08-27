@@ -5,6 +5,14 @@ namespace Utils
 {
     struct Position{ int y; int x; };
 
+    class Timer
+    {
+        std::chrono::steady_clock::time_point timeStart;
+    public:
+        Timer();
+        std::string get();
+    };
+
     int wrapAround(int val, int min, int max);
     int rng(int min, int max);
     bool validYear(int year);

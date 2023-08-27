@@ -68,3 +68,14 @@ std::string Utils::timeStamp()
     std::time_t end_time = std::chrono::system_clock::to_time_t(end);
     return std::ctime(&end_time);
 }
+
+Utils::Timer::Timer() : 
+    timeStart{std::chrono::high_resolution_clock::now()}
+{}
+
+std::string Utils::Timer::get()
+{
+    const std::chrono::duration<double,std::milli> duration{(std::chrono::high_resolution_clock::now() - timeStart)};
+    const auto count{duration.count()};
+    return std::to_string(count) + "ms";
+}
