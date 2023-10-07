@@ -1,4 +1,5 @@
 #include "Movies.h"
+#include <cmath>
 #include <fstream>
 #include <iostream>
 
@@ -27,10 +28,10 @@ namespace
     constexpr auto updateDirection(char c, Direction dir){
         switch(c)
         {
-            case 'w': case KEY_UP:      return dir == Direction::Down ? Direction::Down : Direction::Up; 
-            case 'a': case KEY_LEFT:    return dir == Direction::Right ? Direction::Right : Direction::Left; 
-            case 's': case KEY_DOWN:    return dir == Direction::Up ? Direction::Up : Direction::Down; 
-            case 'd': case KEY_RIGHT:   return dir == Direction::Left ? Direction::Left : Direction::Right; 
+            IfKeyUp:    return dir == Direction::Down ? Direction::Down : Direction::Up; 
+            IfKeyLeft:  return dir == Direction::Right ? Direction::Right : Direction::Left; 
+            IfKeyDown:  return dir == Direction::Up ? Direction::Up : Direction::Down; 
+            IfKeyRight: return dir == Direction::Left ? Direction::Left : Direction::Right; 
             default: return dir;
         }
     }
@@ -370,8 +371,7 @@ void Movies::gameOfLife()
     getch();
     delwin(w);
 }
-#include <cmath>
-#include <thread>
+
 void Movies::graph()
 {
     constexpr auto xStart{21};
@@ -380,6 +380,7 @@ void Movies::graph()
     auto w{ newwin(height,width,1,xStart+2)};
     box(w,0,0);
     auto A{7};
+    auto B{M_PI*3};
     char c{'\0'};
     while(c!='q')
     {
@@ -388,26 +389,40 @@ void Movies::graph()
         {
             c = getch();
             if(c=='q')
-                return (void)delwin(w);
+            {    
+                timeout(-1);
+                delwin(w);
+                return;
+            }
 
             for(int x=1; x<width-1; ++x)
             {
-                constexpr auto B{M_PI*3};
-                if(c >= '1' && c <= '9')
-                    A = c-'0';
+                switch(c)
+                {
+                    case 'w': ++A; c = '\0'; break;
+                    case 's': --A; c = '\0'; break;
+                    case 'a': B-= 1.0*M_PI/180.0; c = '\0'; break;
+                    case 'd': B+= 1.0*M_PI/180.0; c = '\0'; break;
+                }
+                A = std::clamp(A,1,height/2-1);
                 const auto y{ A * std::sin(180/(M_PI*2)*B*x+i)};
                 setText(w,y+height/2,x,"*");
             }
+            setText(w,0,2,("Amp: "+std::to_string(A)+", freq: "+std::to_string(B/M_PI).substr(0,6)+"pi").c_str());
             wrefresh(w);
             cleanup(w,height,width);
         }
     }
+    timeout(-1);
     delwin(w);
 }
 
 void Movies::reset() 
 {
-    auto w{ newwin(LINES-2,46,1,21) };
+    constexpr auto xStart{21};
+    const auto width{COLS-xStart-3};
+    const auto height{LINES-2};
+    auto w{ newwin(height,width,1,xStart+2)};
     wattron(w,COLOR_PAIR(GREEN));
     wattron(w,A_BOLD);
 
@@ -428,6 +443,7 @@ void Movies::reset()
                 m_ratingCache[movie.name] = movie.rating;
                 movie.rating = 1000;
             }
+            setText(w,7,1,("Reset "+totalMovies+" movies rating to 1000").c_str());
             break;
         }
         case 'R':
@@ -436,22 +452,11 @@ void Movies::reset()
             if(m_ratingCache.empty())
                 break;
 
-            Utils::Queue<std::pair<std::string,int>> screenusssy{LINES-2};
             for(auto& movie : m_movies)
                 if(const auto it{ m_ratingCache.find(movie.name) }; it != m_ratingCache.end()) [[likely]]
-                {
                     movie.rating = it->second;
-                    screenusssy.add({movie.name,movie.rating});
-                    int count{0};
-                    for(const auto&[name,restoredRating] : screenusssy)
-                    {    
-                        ++count;
-                        setText(w,count,12,(name+"Was: "+std::to_string(it->second)).c_str());
-                        wrefresh(w);
-                    }
-                }
-            
 
+            setText(w,7,1,"Restored all ratings from cache ");
             break;
         }
         default:
@@ -529,11 +534,11 @@ void Movies::browse()
         mvwchgat(w,pos,0,1,A_NORMAL,COLOR_PAIR(YELLOW),nullptr);
         switch (c)
         {
-        IfKeyDown:  { pos++; break; }     
-        IfKeyUp:    { pos--; break; }
-        IfKeyRight: { pos+=10; break; }
-        IfKeyLeft:  { pos-=10; break; }
-        default : return;
+            IfKeyDown:  { pos++; break; }     
+            IfKeyUp:    { pos--; break; }
+            IfKeyRight: { pos+=10; break; }
+            IfKeyLeft:  { pos-=10; break; }
+            default : return;
         }
         if(pos < 1)
         {
@@ -690,7 +695,7 @@ void Movies::rateMovies()
     while(loop){
         switch (getch())
         {
-        case 'w': case 'W': case KEY_UP:
+        IfKeyUp:
         {
             wattron(w1,A_STANDOUT);
             wattroff(w2,A_STANDOUT);
@@ -699,7 +704,7 @@ void Movies::rateMovies()
             selection = true;
             break;
         }
-        case 's': case 'S': case KEY_DOWN:
+        IfKeyDown:
         {            
             wattroff(w1,A_STANDOUT);
             wattron(w2,A_STANDOUT);
@@ -708,7 +713,7 @@ void Movies::rateMovies()
             selection = false;
             break;
         }
-        case 'd': case 'D': case KEY_RIGHT:
+        IfKeyRight:
         {
             loop = false;
             wrefresh(w1);
