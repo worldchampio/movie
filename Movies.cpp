@@ -1,12 +1,18 @@
 #include "Movies.h"
 #include <fstream>
 #include <iostream>
-#include <thread>
+
+#define IfKeyUp case KEY_UP: case 'W': case 'w'
+#define IfKeyDown case KEY_DOWN: case 'S': case 's'
+#define IfKeyLeft case 'a': case 'A': case KEY_LEFT
+#define IfKeyRight case 'd': case 'D': case KEY_RIGHT
+#define IfKeyConfirm case KEY_RIGHT: case 'D': case 'd': case KEY_ENTER
 
 namespace
 {
     constexpr auto Filename{"movies.txt"};
     constexpr auto HighscoreFilename{"score.txt"};
+
     constexpr auto CYAN{1};
     constexpr auto YELLOW{2};
     constexpr auto RED{3};
@@ -18,32 +24,29 @@ namespace
     void setText(WINDOW* w, int y, int x, const char* text) { mvwprintw(w,y,x,text); }
 
     enum class Direction{ Up, Left, Down, Right};
-    auto updateDirection(char c, Direction dir){
+    constexpr auto updateDirection(char c, Direction dir){
         switch(c)
         {
-            case 'w': case KEY_UP:
-                return dir == Direction::Down ? Direction::Down : Direction::Up; 
-            case 'a': case KEY_LEFT:
-                return dir == Direction::Right ? Direction::Right : Direction::Left; 
-            case 's': case KEY_DOWN:
-                return dir == Direction::Up ? Direction::Up : Direction::Down; 
-            case 'd': case KEY_RIGHT: 
-                return dir == Direction::Left ? Direction::Left : Direction::Right; 
-            default:
-                return dir;
+            case 'w': case KEY_UP:      return dir == Direction::Down ? Direction::Down : Direction::Up; 
+            case 'a': case KEY_LEFT:    return dir == Direction::Right ? Direction::Right : Direction::Left; 
+            case 's': case KEY_DOWN:    return dir == Direction::Up ? Direction::Up : Direction::Down; 
+            case 'd': case KEY_RIGHT:   return dir == Direction::Left ? Direction::Left : Direction::Right; 
+            default: return dir;
         }
     }
 
-    struct Diff
+    struct Diff{ double diff; int number; WINDOW* w; };
+
+    auto cleanup(WINDOW* win, int h_win, int w_win)
     {
-        double diff; 
-        int number; 
-        WINDOW* w;
-    };
+        for(int y=1; y<h_win-1; ++y)
+        for(int x=1; x<w_win-1; ++x)
+            setText(win,y,x," ");
+    }
 }
 
 Movies::Movies() :
-    menuItems{
+    m_menuItems{
         {"Add movie.",      [this]{ addMovie(); }},
         {"Rate two movies", [this]{ for(int i=0; i<10; i++) rateMovies(); }},
         {"Search for movie",[this]{ search(); }},
@@ -52,7 +55,7 @@ Movies::Movies() :
         {"Reset ratings",   [this]{ reset(); }},
         {"Snake",           [this]{ snake(); }},
         {"Game of Life",    [this]{ gameOfLife(); }},
-        {"Battleships",     [this]{ battleShips(); }},
+        {"Graph",           [this]{ graph(); }},
         {"Exit", []{ return; }}}
 {  
     loadMovies();
@@ -61,7 +64,7 @@ Movies::Movies() :
     curs_set(0);
     initColors();
     noecho();
-
+    keypad(stdscr,true);
     createMenu();
 }
 
@@ -69,15 +72,12 @@ Movies::~Movies()
 {
     std::filesystem::remove(Filename);
     std::filesystem::remove(HighscoreFilename);
-    auto moviefile = std::fstream{Filename,std::ios_base::app};
-    auto highscoreFile = std::fstream{HighscoreFilename,std::ios_base::app};
-    
-    for(const auto& movie : movies) moviefile << serialize(movie);
-    for(const auto& score : scores) highscoreFile << serialize(score);
-    
+    auto moviefile{std::fstream{Filename,std::ios_base::app}};
+    auto highscoreFile{std::fstream{HighscoreFilename,std::ios_base::app}};
+    for(const auto& movie : m_movies) moviefile << serialize(movie);
+    for(const auto& score : m_scores) highscoreFile << serialize(score);
     moviefile.close();
     highscoreFile.close();
-    
     endwin();
 }
 
@@ -85,11 +85,10 @@ void Movies::createMenu()
 {
     box(stdscr,0,0);
     constexpr auto x{4};
-    for(int i=0; i<menuItems.size(); i++)
-        setText(stdscr,i+2,x,menuItems[i].text.c_str());
+    for(int i=0; i<m_menuItems.size(); i++)
+        setText(stdscr,i+2,x,m_menuItems[i].text.c_str());
 
     const std::vector helpItems{
-        "SHIFT+9 - Backspace",
         "D       - Select",
         "A       - Back",
         "Q       - Quit",
@@ -118,34 +117,27 @@ int Movies::execute()
     while(c!='q'){
         setText(stdscr,pos+2,2," ");
         switch(c){
-            case KEY_UP:
-            case 'W':
-            case 'w':
+            IfKeyUp:
             {
                 pos--;
                 break;
             }
-            case KEY_DOWN:
-            case 'S':
-            case 's':
+            IfKeyDown:
             {
                 pos++;
                 break;
             }
-            case KEY_RIGHT:
-            case 'D':
-            case 'd':
-            case KEY_ENTER:
-                if(pos >= menuItems.size()-1)
+            IfKeyConfirm:
+                if(pos >= m_menuItems.size()-1)
                     return endwin();
                 else
                 {
-                    menuItems.at(pos).fcn();
+                    m_menuItems.at(pos).fcn();
                     break;
                 }
         }
 
-        pos = Utils::wrapAround(pos,0,menuItems.size()-1);
+        pos = Utils::wrapAround(pos,0,m_menuItems.size()-1);
             
         setText(stdscr,pos+2,2,"*");
         mvchgat(pos+2,2,1,A_STANDOUT,COLOR_PAIR(1),nullptr);
@@ -158,11 +150,11 @@ int Movies::execute()
 
 void Movies::recommend()
 {
-    const auto randomMovie{ movies[Utils::rng(0,movies.size()-1)] };
+    const auto randomMovie{ m_movies[Utils::rng(0,m_movies.size()-1)] };
     auto w{ newwin(5,globalWidth+10,2,21) };
     wattron(w,COLOR_PAIR(MAGENTA));
     setText(w,1,2, displayString(randomMovie, "RANDOM:  ").c_str());
-    if(!ratedMovies.empty())
+    if(!m_ratedMovies.empty())
     {
         const auto [highestDiff,diff]{highestDiffMovie()};
         const auto str{displayString(highestDiff, "HOTTEST: ") +" +"+std::to_string(static_cast<int>(diff))+""};
@@ -182,11 +174,11 @@ std::pair<Movies::Movie,double> Movies::highestDiffMovie()
 {
     Movie highestDiff;
     double diff{0};
-    for(const auto& movieIndex : ratedMovies)
-        if(movieIndex.second > diff)
+    for(const auto[index, difference] : m_ratedMovies)
+        if(difference > diff)
         {    
-            highestDiff = movies[movieIndex.first];
-            diff = movieIndex.second;
+            highestDiff = m_movies[index];
+            diff = difference;
         }
     return{ highestDiff,diff };
 }
@@ -195,7 +187,7 @@ Movies::Movie Movies::highestRatedMovie()
 {
     Movie highestRated;
     double rating{0};
-    for(const auto& movie : movies)
+    for(const auto& movie : m_movies)
         if(movie.rating > rating)
         {    
             highestRated = movie;
@@ -260,7 +252,7 @@ void Movies::snake()
         if(mvwinch(w,pos.y,pos.x) =='*')
         {
             if(score > 0)
-                scores.push_back({score,Utils::timeStamp()});
+                m_scores.push_back({score,Utils::timeStamp()});
             break;
         }         
         if(mvwinch(w,pos.y,pos.x) == 'o')
@@ -288,17 +280,17 @@ void Movies::snake()
     }
     setText(w,height-3,width/2,c == 'q' ? "GAME QUIT" : "GAME OVER");
     setText(w,height-2,width/2 - 5,"Any key to return");
-    std::sort(scores.begin(),scores.end(),[](const Score& s1, const Score& s2){ return s1.score > s2.score; });
+    std::sort(m_scores.begin(),m_scores.end(),[](const Score& s1, const Score& s2){ return s1.score > s2.score; });
     wattron(w,A_UNDERLINE);
 
-    for(int i=0; i<scores.size() && i<height-4; ++i)
+    for(int i=0; i<m_scores.size() && i<height-4; ++i)
     {
-        const auto currentScore{scores[i].score};
-        const auto str{std::to_string(currentScore)+"\t"+scores[i].timestamp};
+        const auto currentScore{m_scores[i].score};
+        const auto str{std::to_string(currentScore)+"\t"+m_scores[i].timestamp};
         setText(w,i+2,2,str.c_str());
     }    
 
-    if(score == scores.front().score)
+    if(score == m_scores.front().score)
     {
         wattron(w,COLOR_PAIR(MAGENTA));
         setText(w,0,2,"NEW HIGHSCORE");
@@ -326,9 +318,8 @@ void Movies::gameOfLife()
     {
         backPane.push_back(std::vector<Status>{});
         for(int j=0; j<width; j++)
-        {
             backPane[i].push_back(Utils::rng(0,10) < 6 ? Status::Dead : Status::Alive);
-        }
+
     }
     box(w,0,0);
     wrefresh(w);
@@ -379,64 +370,38 @@ void Movies::gameOfLife()
     getch();
     delwin(w);
 }
-
-void Movies::battleShips()
+#include <cmath>
+#include <thread>
+void Movies::graph()
 {
     constexpr auto xStart{21};
     const auto width{COLS-xStart-3};
     const auto height{LINES-2};
-    auto w{ newwin(height,width,1,xStart+2) };
-    int colcount{1};
-    for(auto startX : {2, 38})
-    {
-        setText(w,1,startX,"| A | B | C | D | E | F | G | H |");
-        for(int i=2; i<23; ++i)
-        {
-            const auto isTen{colcount == 10};
-            const auto even{i%2==0};
-            setText(w,i,isTen && !even ? startX-1: startX,(even ? "+---+---+---+---+---+---+---+---+":(std::to_string(colcount++)+"   |   |   |   |   |   |   |   |").c_str()));
-        }
-        colcount = 1;
-    }
-    setText(w,3,4,"X");
-
+    auto w{ newwin(height,width,1,xStart+2)};
+    box(w,0,0);
+    auto A{7};
     char c{'\0'};
-    Utils::Position pos{3,4};
-    Utils::Position posNoOffset;
     while(c!='q')
     {
-        setText(w,pos.y,pos.x," ");
-        switch(c)
+        timeout(60);
+        for(int i=0; i<100; ++i)
         {
-            case 'w': 
-                posNoOffset.y--;
-                pos.y-=2; 
-                break;
-            case 'a': 
-                posNoOffset.x--;
-                pos.x-=4; 
-                break;
-            case 's': 
-                posNoOffset.y++;
-                pos.y+=2; 
-                break;
-            case 'd':
-                posNoOffset.x++;
-                pos.x+=4; 
-                break;
+            c = getch();
+            if(c=='q')
+                return (void)delwin(w);
+
+            for(int x=1; x<width-1; ++x)
+            {
+                constexpr auto B{M_PI*3};
+                if(c >= '1' && c <= '9')
+                    A = c-'0';
+                const auto y{ A * std::sin(180/(M_PI*2)*B*x+i)};
+                setText(w,y+height/2,x,"*");
+            }
+            wrefresh(w);
+            cleanup(w,height,width);
         }
-        posNoOffset.y = Utils::wrapAround(posNoOffset.y,1,10);
-        posNoOffset.x = Utils::wrapAround(posNoOffset.x,1,10);
-        pos.y = Utils::wrapAround(pos.y,3,21);
-        pos.x = Utils::wrapAround(pos.x,4,32);
-        wattron(w,COLOR_PAIR(GREEN));
-        setText(w,pos.y,pos.x,"X");
-        wattroff(w,COLOR_PAIR(GREEN));
-        setText(w,0,2,(" y:"+std::to_string(posNoOffset.y)+"\tx:"+std::to_string(posNoOffset.x)+"   ").c_str());
-        wrefresh(w);
-        c = getch();
     }
-    wrefresh(w);
     delwin(w);
 }
 
@@ -452,14 +417,15 @@ void Movies::reset()
 
     box(w,0,0);
     wrefresh(w);
+    const auto totalMovies{std::to_string(m_movies.size())};
     switch(getch())
     {
         case 'D':
         case 'd':
         {
-            for(auto& movie : movies)
+            for(auto& movie : m_movies)
             {
-                ratingCache[movie.name] = movie.rating;
+                m_ratingCache[movie.name] = movie.rating;
                 movie.rating = 1000;
             }
             break;
@@ -467,22 +433,36 @@ void Movies::reset()
         case 'R':
         case 'r':
         {
-            if(ratingCache.empty())
+            if(m_ratingCache.empty())
                 break;
 
-            for(auto& movie : movies) // is this trash??
-                if(const auto it{ ratingCache.find(movie.name) }; it != ratingCache.end()) [[likely]]
+            Utils::Queue<std::pair<std::string,int>> screenusssy{LINES-2};
+            for(auto& movie : m_movies)
+                if(const auto it{ m_ratingCache.find(movie.name) }; it != m_ratingCache.end()) [[likely]]
+                {
                     movie.rating = it->second;
+                    screenusssy.add({movie.name,movie.rating});
+                    int count{0};
+                    for(const auto&[name,restoredRating] : screenusssy)
+                    {    
+                        ++count;
+                        setText(w,count,12,(name+"Was: "+std::to_string(it->second)).c_str());
+                        wrefresh(w);
+                    }
+                }
+            
+
             break;
         }
         default:
             break;
     }
     wrefresh(w);
+    getch();
     delwin(w);
 }
 
-std::string Movies::getStrInput(WINDOW* win, int y, int x)
+std::string Movies::getStrInput(WINDOW* win, int y, int x, int color, bool bold)
 {
     int c{'\0'};
     std::string str;
@@ -492,16 +472,17 @@ std::string Movies::getStrInput(WINDOW* win, int y, int x)
         blank.resize(str.size(),' ');
         setText(win,y,x,blank.c_str());
         c=getch();
-        if(c == KEY_BACKSPACE || c==')')
+        if(Utils::backspace(c))
         {
             if(!str.empty())
                 str.pop_back();
         } 
-        else
+        else if(Utils::validAscii(c))
             str+=c;
 
         setText(win,y,x,str.c_str());
-        mvwchgat(win,y,x,str.size(),A_BOLD,0,nullptr);
+        if(bold)
+            mvwchgat(win,y,x,str.size(),A_BOLD,color,nullptr);
         box(win,0,0);
         wrefresh(win);
     }
@@ -517,15 +498,15 @@ void Movies::browse()
     wattron(w,COLOR_PAIR(YELLOW));
 
     auto shift{0};
-    const auto lastMovie{static_cast<int>(movies.size()-1)};
+    const auto lastMovie{static_cast<int>(m_movies.size()-1)};
     const auto drawMovies{[this,&w,&lastMovie](int shift)
     {
-        if(shift>=movies.size()-1)
+        if(shift>=m_movies.size()-1)
             return;
-        for(int y=0; y<movies.size(); y++)
+        for(int y=0; y<m_movies.size(); y++)
         {
             const int adjustedShift{ std::clamp(y+shift,0,lastMovie) };
-            const auto& currentMovie{movies[adjustedShift]};
+            const auto& currentMovie{m_movies[adjustedShift]};
             std::string bigSpace; bigSpace.resize(COLS-xStart-4,' ');
             setText(w,y+1,0,bigSpace.c_str());
             setText(w,y+1,2,(std::to_string(adjustedShift+1)+"\t"+displayString(currentMovie)).c_str()); 
@@ -534,12 +515,13 @@ void Movies::browse()
     drawMovies(shift);
     box(w,0,0);
 
-    const std::string title{std::to_string(movies.size())+" movies loaded."};
+    const std::string title{std::to_string(m_movies.size())+" movies loaded."};
     setText(w,0,2,title.c_str());
     mvwchgat(w,0,2,title.size(),A_BOLD,COLOR_PAIR(YELLOW),nullptr);
     wrefresh(w);
     char c{'\0'};
     int pos{0};
+
     while(c!='q')
     {
         c = getch();
@@ -547,10 +529,10 @@ void Movies::browse()
         mvwchgat(w,pos,0,1,A_NORMAL,COLOR_PAIR(YELLOW),nullptr);
         switch (c)
         {
-        case 's': case 'S': case KEY_DOWN:  { pos++; break; }     
-        case 'w': case 'W': case KEY_UP:    { pos--; break; }
-        case 'd': case 'D': case KEY_RIGHT: { pos+=10; break; }
-        case 'a': case 'A': case KEY_LEFT:  { pos-=10; break; }
+        IfKeyDown:  { pos++; break; }     
+        IfKeyUp:    { pos--; break; }
+        IfKeyRight: { pos+=10; break; }
+        IfKeyLeft:  { pos-=10; break; }
         default : return;
         }
         if(pos < 1)
@@ -596,14 +578,14 @@ void Movies::addMovie()
         newMovie.name.pop_back();
 
     std::optional<Movie> potentialMatch;
-    for(const auto& movie : movies)
+    for(const auto& movie : m_movies)
         if(Utils::stringEquals(movie.name,newMovie.name))
             potentialMatch = movie;
 
     if(Utils::validYear(newMovie.year) && !potentialMatch)
     {
         newMovie.rating = 1000;
-        movies.push_back(newMovie);
+        m_movies.push_back(newMovie);
     }
     else
     {
@@ -639,17 +621,18 @@ void Movies::search()
         blank.resize(str.size(),' ');
         setText(w,2,2,blank.c_str());
         c=getch();
-        if(c == KEY_BACKSPACE || c==')')
+        if(Utils::backspace(c))
         {
             if(!str.empty())
                 str.pop_back();
-        } else
+        } 
+        else if(Utils::validAscii(c))
             str+=c;
 
         if(str.back()=='\n')
             str.pop_back();
 
-        for(const auto& movie : movies)
+        for(const auto& movie : m_movies)
             if(Utils::stringEquals(movie.name,str))
                 matches.push_back(movie);
 
@@ -687,9 +670,9 @@ void Movies::search()
 
 void Movies::rateMovies()
 {
-    const auto[firstNumber,secondNumber]{Utils::getTwoRngs(0,movies.size()-1)};
-    const auto firstMovie{movies[firstNumber]};
-    const auto secondMovie{movies[secondNumber]};
+    const auto[firstNumber,secondNumber]{Utils::getTwoRngs(0,m_movies.size()-1)};
+    const auto firstMovie{m_movies[firstNumber]};
+    const auto secondMovie{m_movies[secondNumber]};
     auto w1{ newwin(4,globalWidth,2,21) };
     auto w2{ newwin(4,globalWidth,7,21)};
     wattron(w1,COLOR_PAIR(CYAN));
@@ -739,15 +722,14 @@ void Movies::rateMovies()
         if(selection.has_value())
             newRatings = Utils::computeElo(firstMovie.rating,secondMovie.rating,selection.value());
 
-
         if(newRatings.has_value())
         {
             const auto diff1{ newRatings.value().first - firstMovie.rating };
             const auto diff2{ newRatings.value().second - secondMovie.rating };
             for(const auto [diff,num,win] : { Diff{diff1,firstNumber,w1}, Diff{diff2,secondNumber,w2}}) 
             {
-                ratedMovies[num] += diff;
-                movies[num].rating += diff;
+                m_ratedMovies[num] += diff;
+                m_movies[num].rating += diff;
                 const auto diffStr{ "Rating: "+ std::string(diff > 0 ? "+":"") + std::to_string(static_cast<int>(diff)) };
                 setText(win, 2, 2, diffStr.c_str());
             }
@@ -764,13 +746,11 @@ void Movies::loadMovies()
     auto moviefile{std::fstream{Filename}};
     std::string str;
     while(std::getline(moviefile,str))
-    {
-        const auto movie{deserialize<Movie>(str)};
-        if(Utils::validYear(movie.year))
-            movies.push_back(movie);
-    }
+        if(const auto movie{deserialize<Movie>(str)}; Utils::validYear(movie.year))
+            m_movies.push_back(movie);
+
     moviefile.close();
-    std::sort(movies.begin(),movies.end(),[](const Movie& m1, const Movie& m2){ return m1.rating > m2.rating; });
+    std::sort(m_movies.begin(),m_movies.end(),[](const Movie& m1, const Movie& m2){ return m1.rating > m2.rating; });
 }
 
 void Movies::loadHighscores()
@@ -779,7 +759,7 @@ void Movies::loadHighscores()
     std::string str;
     while(std::getline(highscoreFile,str))
         if(!str.empty())
-            scores.push_back(deserialize<Score>(str));
+            m_scores.push_back(deserialize<Score>(str));
     highscoreFile.close();
 }
 

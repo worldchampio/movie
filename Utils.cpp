@@ -2,10 +2,28 @@
 #include <cmath>
 #include <random>
 #include <sstream>
+#include <chrono>
+
+auto getYear()
+{
+    const std::chrono::time_point now{std::chrono::system_clock::now()};
+    const std::chrono::year_month_day ymd{std::chrono::floor<std::chrono::days>(now)};
+    return static_cast<int>(ymd.year());
+}
 
 bool Utils::validYear(int year)
 { 
-    return year > 1900 && year < 2024;
+    return year > 1900 && year <= getYear();
+}
+
+bool Utils::validAscii(char c) 
+{
+    return c > 31 && c < 127;
+}
+
+bool Utils::backspace(char c)
+{
+    return c == 127 || c == '\b';
 }
 
 std::pair<double,double> Utils::computeElo(double Ra, double Rb, bool victor)
@@ -52,12 +70,12 @@ int Utils::wrapAround(int val, int min, int max)
     return val < min ? max : val > max ? min : val;
 }
 
-std::vector<std::string> Utils::tokenize(const std::string& str)
+std::vector<std::string> Utils::tokenize(const std::string& str, char delimiter)
 {    
     std::vector<std::string> tokens;
     std::string token;
     std::stringstream ss{str};
-    while(std::getline(ss,token,','))
+    while(std::getline(ss,token,delimiter))
         tokens.push_back(token);
     return tokens;
 }

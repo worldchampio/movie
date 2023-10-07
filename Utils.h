@@ -1,10 +1,11 @@
 #include <string>
 #include <utility>
+#include <array>
+
+#pragma once
 
 namespace Utils
 {
-    struct Position{ int y; int x; };
-
     class Timer
     {
         std::chrono::steady_clock::time_point timeStart;
@@ -12,14 +13,18 @@ namespace Utils
         Timer();
         std::string get();
     };
+    
+    struct Position{ int y; int x; };
 
     int wrapAround(int val, int min, int max);
     int rng(int min, int max);
     bool validYear(int year);
+    bool validAscii(char c);
+    bool backspace(char c);
     bool stringEquals(std::string a, std::string b);
     std::pair<double,double> computeElo(double Ra, double Rb, bool victor);
     std::pair<int,int> getTwoRngs(int min, int max);
-    std::vector<std::string> tokenize(const std::string& str);
+    std::vector<std::string> tokenize(const std::string& str, char delimiter = ',');
     std::string timeStamp();
 
     template<class T>

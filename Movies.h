@@ -27,6 +27,7 @@ private:
         int score{};
         std::string timestamp;
     };
+
     struct MenuItem{
         std::string text;
         std::function<void()> fcn;
@@ -43,22 +44,22 @@ private:
     void search();
     void snake();
     void gameOfLife();
-    void battleShips();
+    void graph();
     void reset();
     
     Movie highestRatedMovie();
 
     std::string displayString(const Movie& movie, const std::string& preStr = "");
-    std::string getStrInput(WINDOW* win, int y, int x);
+    std::string getStrInput(WINDOW* win, int y, int x, int color = 0, bool bold = true);
     std::pair<Movie,double> highestDiffMovie();
 
-    std::vector<Movie> movies;
-    std::vector<Score> scores;
+    std::vector<Movie> m_movies;
+    std::vector<Score> m_scores;
 
-    std::unordered_map<int,double> ratedMovies;
-    std::unordered_map<std::string,int> ratingCache;
+    std::unordered_map<int,double> m_ratedMovies;
+    std::unordered_map<std::string,int> m_ratingCache;
 
-    const std::vector<MenuItem> menuItems;
+    const std::vector<MenuItem> m_menuItems;
 
     template<class T>
     std::string serialize(const T& object)
@@ -83,16 +84,9 @@ private:
     {
         const auto tokens{Utils::tokenize(str)};
         if constexpr (std::is_same<T,Score>())
-        {
             return { std::atoi(tokens[0].c_str()),tokens[1]};
-        }
-        else if constexpr (std::is_same<T,Movie>())
-        {
-            return{
-                std::atof(tokens[0].c_str()),
-                tokens[1],
-                std::atoi(tokens[2].c_str())
-            };
-        }
+        
+        if constexpr (std::is_same<T,Movie>())
+            return{ std::atof(tokens[0].c_str()), tokens[1], std::atoi(tokens[2].c_str())};
     }
 };
