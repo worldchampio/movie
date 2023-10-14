@@ -95,5 +95,6 @@ std::string Utils::Timer::get()
 {
     const std::chrono::duration<double,std::milli> duration{(std::chrono::high_resolution_clock::now() - timeStart)};
     const auto count{duration.count()};
-    return std::to_string(count) + "ms";
+
+    return std::to_string(count).substr(0,4) + "ms";
 }

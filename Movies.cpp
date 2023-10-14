@@ -48,16 +48,16 @@ namespace
 
 Movies::Movies() :
     m_menuItems{
-        {"Add movie.",      [this]{ addMovie(); }},
-        {"Rate two movies", [this]{ for(int i=0; i<10; i++) rateMovies(); }},
-        {"Search for movie",[this]{ search(); }},
-        {"Browse",          [this]{ browse(); }},
-        {"Recommend",       [this]{ recommend(); }},
-        {"Reset ratings",   [this]{ reset(); }},
-        {"Snake",           [this]{ snake(); }},
-        {"Game of Life",    [this]{ gameOfLife(); }},
-        {"Graph",           [this]{ graph(); }},
-        {"Exit", []{ return; }}}
+    {"Add movie.",      [this]{ addMovie(); }},
+    {"Rate two movies", [this]{ for(int i=0; i<10; i++) rateMovies(); }},
+    {"Search for movie",[this]{ search(); }},
+    {"Browse",          [this]{ browse(); }},
+    {"Recommend",       [this]{ recommend(); }},
+    {"Reset ratings",   [this]{ reset(); }},
+    {"Snake",           [this]{ snake(); }},
+    {"Game of Life",    [this]{ gameOfLife(); }},
+    {"Graph",           [this]{ graph(); }},
+    {"Exit",            []{ return; }}}
 {  
     loadMovies();
     loadHighscores();
@@ -118,28 +118,21 @@ int Movies::execute()
     while(c!='q'){
         setText(stdscr,pos+2,2," ");
         switch(c){
-            IfKeyUp:
-            {
-                pos--;
-                break;
-            }
-            IfKeyDown:
-            {
-                pos++;
-                break;
-            }
+            IfKeyUp:    { pos--; break; }
+            IfKeyDown:  { pos++; break; }
             IfKeyConfirm:
-                if(pos >= m_menuItems.size()-1)
+            {    
+                if(pos >= m_menuItems.size()-1) 
                     return endwin();
                 else
-                {
-                    m_menuItems.at(pos).fcn();
-                    break;
+                { 
+                    m_menuItems.at(pos).fcn(); break; 
                 }
+            }
         }
 
         pos = Utils::wrapAround(pos,0,m_menuItems.size()-1);
-            
+
         setText(stdscr,pos+2,2,"*");
         mvchgat(pos+2,2,1,A_STANDOUT,COLOR_PAIR(1),nullptr);
         box(stdscr,0,0);
@@ -229,22 +222,10 @@ void Movies::snake()
         dir = updateDirection(c,dir);
         switch (dir)
         {
-            case Direction::Up: 
-                --pos.y; 
-                timeOut = 60;
-                break;
-            case Direction::Left: 
-                --pos.x; 
-                timeOut = 30;
-                break;
-            case Direction::Down: 
-                ++pos.y; 
-                timeOut = 60;
-                break;
-            case Direction::Right: 
-                ++pos.x; 
-                timeOut = 30;
-                break;
+        case Direction::Up:     --pos.y; timeOut = 60; break;
+        case Direction::Left:   --pos.x; timeOut = 30; break;
+        case Direction::Down:   ++pos.y; timeOut = 60; break;
+        case Direction::Right:  ++pos.x; timeOut = 30; break;
         }
 
         pos.y = Utils::wrapAround(pos.y,1,height-2);
@@ -408,7 +389,7 @@ void Movies::graph()
                 const auto y{ A * std::sin(180/(M_PI*2)*B*x+i)};
                 setText(w,y+height/2,x,"*");
             }
-            setText(w,0,2,("Amp: "+std::to_string(A)+", freq: "+std::to_string(B/M_PI).substr(0,6)+"pi").c_str());
+            setText(w,0,2,("Amp: "+std::to_string(A)+",\tfreq: "+std::to_string(B/M_PI).substr(0,6)+"pi").c_str());
             wrefresh(w);
             cleanup(w,height,width);
         }
@@ -416,7 +397,7 @@ void Movies::graph()
     timeout(-1);
     delwin(w);
 }
-
+#include <thread>
 void Movies::reset() 
 {
     constexpr auto xStart{21};
@@ -452,11 +433,27 @@ void Movies::reset()
             if(m_ratingCache.empty())
                 break;
 
+            std::vector<Movie> restoredMovies;
+            Utils::Queue<Movie> queue(height-2);
             for(auto& movie : m_movies)
                 if(const auto it{ m_ratingCache.find(movie.name) }; it != m_ratingCache.end()) [[likely]]
+                {
                     movie.rating = it->second;
-
-            setText(w,7,1,"Restored all ratings from cache ");
+                    restoredMovies.push_back(movie);
+                    queue.add(movie);
+                    std::string blank;
+                    blank.resize(width-2,' ');
+                    if(std::next(it) != m_ratingCache.end()) [[likely]]
+                        for(int i=1; i<=queue.size(); ++i)
+                            setText(w,i,1,blank.c_str());
+                    auto count {1};
+                    for(auto element : queue)
+                    {   
+                        setText(w,count++,12,("Restored "+element.name+" rating to "+std::to_string(element.rating)).c_str());
+                        wrefresh(w);
+                    }
+                    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+                }            
             break;
         }
         default:

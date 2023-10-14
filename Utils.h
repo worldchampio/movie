@@ -31,20 +31,22 @@ namespace Utils
     class Queue
     {
     public:
-        Queue(int size) : size{size} {}
+        Queue(int size) : m_size{size} {}
         void add(T element)
         {
             buf.push_back(element);
-            if(buf.size()>size)
+            if(buf.size()>m_size)
                 buf.erase(buf.begin());
         }
         T get(int i) {
-            return i<size ? buf[i] : T{};
+            return i<m_size ? buf[i] : T{};
         }
         auto begin() { return buf.begin(); }
         auto end() { return buf.end(); }
+        auto get() { return buf; }
+        auto size() { return m_size; }
     private:
         std::vector<T> buf;
-        int size{0};
+        int m_size{0};
     };
 }
