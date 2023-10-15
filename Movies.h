@@ -1,7 +1,6 @@
 #include "ncurses.h"
 #include <string>
 #include <vector>
-#include <optional> 
 #include <unordered_map>
 #include <sstream>
 #include "Utils.h"
@@ -42,6 +41,7 @@ private:
     void gameOfLife();
     void graph();
     void reset();
+    void shutdown();
     
     Movie highestRatedMovie();
 

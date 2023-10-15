@@ -1,7 +1,7 @@
 #include "Movies.h"
-#include <cmath>
 #include <fstream>
 #include <iostream>
+#include <thread>
 
 #define IfKeyUp case KEY_UP: case 'W': case 'w'
 #define IfKeyDown case KEY_DOWN: case 'S': case 's'
@@ -62,7 +62,7 @@ Movies::Movies() :
         {"Graph",           [this]{ graph(); }}
     },
     {
-        {"Exit",            []{ exit(endwin()); }}
+        {"Exit",            [this]{ shutdown(); }}
     }},
     m_titles{"Movies","Games","Misc."}
 {  
@@ -86,7 +86,7 @@ Movies::~Movies()
     for(const auto& score : m_scores) highscoreFile << serialize(score);
     moviefile.close();
     highscoreFile.close();
-    endwin();
+    shutdown();
 }
 
 void Movies::createMenu() 
@@ -125,7 +125,7 @@ void Movies::initColors()
     init_pair(RED,COLOR_RED,COLOR_BLACK);
     init_pair(GREEN,COLOR_GREEN,COLOR_BLACK);
     init_pair(MAGENTA,COLOR_MAGENTA,COLOR_BLACK);
-    attron(COLOR_PAIR(1));
+    attron(COLOR_PAIR(CYAN));
 }
 
 int Movies::execute() 
@@ -433,7 +433,7 @@ void Movies::graph()
     timeout(-1);
     delwin(w);
 }
-#include <thread>
+
 void Movies::reset() 
 {
     constexpr auto xStart{21};
@@ -485,7 +485,7 @@ void Movies::reset()
                     auto count {1};
                     for(auto element : queue)
                     {   
-                        setText(w,count++,12,("Restored "+element.name+" rating to "+std::to_string(element.rating)).c_str());
+                        setText(w,count++,12,("Restored "+element.name+" rating to "+std::to_string(element.rating).substr(0,6)).c_str());
                         wrefresh(w);
                     }
                     std::this_thread::sleep_for(std::chrono::milliseconds(20));
@@ -498,6 +498,21 @@ void Movies::reset()
     wrefresh(w);
     getch();
     delwin(w);
+}
+
+void Movies::shutdown()
+{
+    attron(COLOR_PAIR(CYAN));
+    attron(A_STANDOUT);
+
+    for(int y=0; y<LINES; ++y)
+    {
+        for(int x=0; x<COLS; ++x)
+            setText(stdscr,y,x," ");
+        refresh();
+        std::this_thread::sleep_for(std::chrono::milliseconds(15));
+    }
+    exit(endwin());
 }
 
 std::string Movies::getStrInput(WINDOW* win, int y, int x, int color, bool bold)
@@ -559,7 +574,7 @@ void Movies::browse()
     wrefresh(w);
     char c{'\0'};
     int pos{0};
-
+    int traversal{1};
     while(c!='q')
     {
         c = getch();
@@ -591,6 +606,8 @@ void Movies::browse()
         setText(w,0,2,title.c_str());
         mvwchgat(w,0,2,title.size(),A_BOLD,COLOR_PAIR(YELLOW),nullptr);
         setText(w,pos,0,">");
+        traversal = std::max(1,static_cast<int>((shift+pos)/static_cast<double>(lastMovie) * (LINES-4)));
+        setText(w,traversal,COLS-xStart-3-1,"+");
         mvwchgat(w,pos,0,1,A_STANDOUT,COLOR_PAIR(YELLOW),nullptr);
         wrefresh(w);
     }
