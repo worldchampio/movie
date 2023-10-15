@@ -50,19 +50,19 @@ namespace
 Movies::Movies() :
     m_menuItems{
     {
-        {"Add movie.",      [this]{ addMovie(); return 0; }},
-        {"Rate two movies", [this]{ for(int i=0; i<10; i++) rateMovies(); return 0; }},
-        {"Search for movie",[this]{ search(); return 0; }},
-        {"Browse",          [this]{ browse(); return 0; }},
-        {"Recommend",       [this]{ recommend(); return 0; }},
-        {"Reset ratings",   [this]{ reset(); return 0; }}},
+        {"Add movie.",      [this]{ addMovie(); return 1; }},
+        {"Rate two movies", [this]{ for(int i=0; i<10; i++) rateMovies(); return 1; }},
+        {"Search for movie",[this]{ search(); return 1; }},
+        {"Browse",          [this]{ browse(); return 1; }},
+        {"Recommend",       [this]{ recommend(); return 1; }},
+        {"Reset ratings",   [this]{ reset(); return 1; }}},
     {
-        {"Snake",           [this]{ snake(); return 0; }},
-        {"Game of Life",    [this]{ gameOfLife(); return 0; }},
-        {"Graph",           [this]{ graph(); return 0; }}
+        {"Snake",           [this]{ snake(); return 1; }},
+        {"Game of Life",    [this]{ gameOfLife(); return 1; }},
+        {"Graph",           [this]{ graph(); return 1; }}
     },
     {
-        {"Exit",            []{ return -1; }}
+        {"Exit",            []{ return 0; }}
     }},
     m_titles{"Movies","Games","Misc."}
 {  
@@ -162,7 +162,7 @@ int Movies::execute()
             IfKeyConfirm:
             {     
                 m_exitCode = m_menuItems.at(menuIndex).at(pos).fcn();
-                if(m_exitCode < 0)
+                if(!m_exitCode)
                     return m_exitCode; 
                 break; 
             }
@@ -514,7 +514,7 @@ void Movies::shutdown()
         refresh();
         std::this_thread::sleep_for(std::chrono::milliseconds(15));
     }
-    exit(endwin());
+    m_exitCode = endwin();
 }
 
 std::string Movies::getStrInput(WINDOW* win, int y, int x, int color, bool bold)
