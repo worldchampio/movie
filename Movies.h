@@ -56,7 +56,8 @@ private:
     std::unordered_map<std::string,int> m_ratingCache;
 
     const std::vector<std::vector<MenuItem>> m_menuItems;
-
+    const std::vector<std::string> m_titles;
+    
     template<class T>
     std::string serialize(const T& object)
     {

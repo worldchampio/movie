@@ -63,7 +63,8 @@ Movies::Movies() :
     },
     {
         {"Exit",            []{ exit(endwin()); }}
-    }}
+    }},
+    m_titles{"Movies","Games","Misc."}
 {  
     loadMovies();
     loadHighscores();
@@ -93,10 +94,15 @@ void Movies::createMenu()
     box(stdscr,0,0);
     constexpr auto x{4};
     auto pos{2};
-    for(const auto& submenu : m_menuItems)
+    for(int i=0; i<m_menuItems.size(); ++i)
     {
-        for(const auto& item : submenu)
-            setText(stdscr,pos++,x,item.text.c_str());
+        attron(A_UNDERLINE);
+        attron(A_BOLD);
+        setText(stdscr,pos-1,x-1,m_titles[i].c_str());
+        attroff(A_BOLD);
+        attroff(A_UNDERLINE);
+        for(int j=0; j<m_menuItems[i].size(); ++j)
+            setText(stdscr,pos++,x,m_menuItems[i][j].text.c_str());
         pos++;
     }
 
@@ -166,7 +172,6 @@ int Movies::execute()
         setText(stdscr,pos+2+offset,2,"*");
         mvchgat(pos+2+offset,2,1,A_STANDOUT,COLOR_PAIR(1),nullptr);
         box(stdscr,0,0);
-        setText(stdscr,0,1,("Pos: "+std::to_string(pos)+", Off: "+std::to_string(offset)+", Idx: "+std::to_string(menuIndex)+", "+m_menuItems[menuIndex][pos].text).c_str());
         refresh();
         c = getch();
     }
