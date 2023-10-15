@@ -1,4 +1,5 @@
 #include "Movies.h"
+#include "DigitalRain.h"
 #include <fstream>
 #include <iostream>
 #include <thread>
@@ -59,7 +60,17 @@ Movies::Movies() :
     {
         {"Snake",           [this]{ snake(); return 1; }},
         {"Game of Life",    [this]{ gameOfLife(); return 1; }},
-        {"Graph",           [this]{ graph(); return 1; }}
+        {"Graph",           [this]{ graph(); return 1; }},
+        {"Matrix",          [this]{ 
+            timeout(20);
+            attron(COLOR_PAIR(GREEN));
+            DigitalRain(); 
+            timeout(-1);
+            attron(COLOR_PAIR(CYAN));
+            cleanup(stdscr,LINES,COLS);
+            createMenu();
+            return 1;
+        }}
     },
     {
         {"Exit",            []{ return 0; }}
