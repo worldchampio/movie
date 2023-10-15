@@ -25,7 +25,7 @@ private:
 
     struct MenuItem{
         std::string text;
-        std::function<void()> fcn;
+        std::function<int()> fcn;
     };
     void loadMovies();
     void loadHighscores();
@@ -42,7 +42,7 @@ private:
     void graph();
     void reset();
     void shutdown();
-    
+
     Movie highestRatedMovie();
 
     std::string displayString(const Movie& movie, const std::string& preStr = "");
@@ -58,6 +58,8 @@ private:
     const std::vector<std::vector<MenuItem>> m_menuItems;
     const std::vector<std::string> m_titles;
     
+    int m_exitCode{0};
+
     template<class T>
     std::string serialize(const T& object)
     {

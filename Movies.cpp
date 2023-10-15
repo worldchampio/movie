@@ -50,19 +50,19 @@ namespace
 Movies::Movies() :
     m_menuItems{
     {
-        {"Add movie.",      [this]{ addMovie(); }},
-        {"Rate two movies", [this]{ for(int i=0; i<10; i++) rateMovies(); }},
-        {"Search for movie",[this]{ search(); }},
-        {"Browse",          [this]{ browse(); }},
-        {"Recommend",       [this]{ recommend(); }},
-        {"Reset ratings",   [this]{ reset(); }}},
+        {"Add movie.",      [this]{ addMovie(); return 0; }},
+        {"Rate two movies", [this]{ for(int i=0; i<10; i++) rateMovies(); return 0; }},
+        {"Search for movie",[this]{ search(); return 0; }},
+        {"Browse",          [this]{ browse(); return 0; }},
+        {"Recommend",       [this]{ recommend(); return 0; }},
+        {"Reset ratings",   [this]{ reset(); return 0; }}},
     {
-        {"Snake",           [this]{ snake(); }},
-        {"Game of Life",    [this]{ gameOfLife(); }},
-        {"Graph",           [this]{ graph(); }}
+        {"Snake",           [this]{ snake(); return 0; }},
+        {"Game of Life",    [this]{ gameOfLife(); return 0; }},
+        {"Graph",           [this]{ graph(); return 0; }}
     },
     {
-        {"Exit",            [this]{ shutdown(); }}
+        {"Exit",            []{ return -1; }}
     }},
     m_titles{"Movies","Games","Misc."}
 {  
@@ -161,7 +161,9 @@ int Movies::execute()
             }
             IfKeyConfirm:
             {     
-                m_menuItems.at(menuIndex).at(pos).fcn(); 
+                m_exitCode = m_menuItems.at(menuIndex).at(pos).fcn();
+                if(m_exitCode < 0)
+                    return m_exitCode; 
                 break; 
             }
         }
@@ -175,7 +177,7 @@ int Movies::execute()
         refresh();
         c = getch();
     }
-    return endwin();
+    return m_exitCode;
 }
 
 void Movies::recommend()
@@ -586,7 +588,7 @@ void Movies::browse()
             IfKeyUp:    { pos--; break; }
             IfKeyRight: { pos+=10; break; }
             IfKeyLeft:  { pos-=10; break; }
-            default : return;
+            default :   { search(); return; }
         }
         if(pos < 1)
         {
