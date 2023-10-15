@@ -1,6 +1,7 @@
+#include <array>
+#include <cmath>
 #include <string>
 #include <utility>
-#include <array>
 
 #pragma once
 

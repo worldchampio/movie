@@ -25,7 +25,8 @@ namespace
     void setText(WINDOW* w, int y, int x, const char* text) { mvwprintw(w,y,x,text); }
 
     enum class Direction{ Up, Left, Down, Right};
-    constexpr auto updateDirection(char c, Direction dir){
+    constexpr auto updateDirection(char c, Direction dir)
+    {
         switch(c)
         {
             IfKeyUp:    return dir == Direction::Down ? Direction::Down : Direction::Up; 
@@ -48,16 +49,21 @@ namespace
 
 Movies::Movies() :
     m_menuItems{
-    {"Add movie.",      [this]{ addMovie(); }},
-    {"Rate two movies", [this]{ for(int i=0; i<10; i++) rateMovies(); }},
-    {"Search for movie",[this]{ search(); }},
-    {"Browse",          [this]{ browse(); }},
-    {"Recommend",       [this]{ recommend(); }},
-    {"Reset ratings",   [this]{ reset(); }},
-    {"Snake",           [this]{ snake(); }},
-    {"Game of Life",    [this]{ gameOfLife(); }},
-    {"Graph",           [this]{ graph(); }},
-    {"Exit",            []{ return; }}}
+    {
+        {"Add movie.",      [this]{ addMovie(); }},
+        {"Rate two movies", [this]{ for(int i=0; i<10; i++) rateMovies(); }},
+        {"Search for movie",[this]{ search(); }},
+        {"Browse",          [this]{ browse(); }},
+        {"Recommend",       [this]{ recommend(); }},
+        {"Reset ratings",   [this]{ reset(); }}},
+    {
+        {"Snake",           [this]{ snake(); }},
+        {"Game of Life",    [this]{ gameOfLife(); }},
+        {"Graph",           [this]{ graph(); }}
+    },
+    {
+        {"Exit",            []{ exit(endwin()); }}
+    }}
 {  
     loadMovies();
     loadHighscores();
@@ -86,8 +92,13 @@ void Movies::createMenu()
 {
     box(stdscr,0,0);
     constexpr auto x{4};
-    for(int i=0; i<m_menuItems.size(); i++)
-        setText(stdscr,i+2,x,m_menuItems[i].text.c_str());
+    auto pos{2};
+    for(const auto& submenu : m_menuItems)
+    {
+        for(const auto& item : submenu)
+            setText(stdscr,pos++,x,item.text.c_str());
+        pos++;
+    }
 
     const std::vector helpItems{
         "D       - Select",
@@ -114,28 +125,48 @@ void Movies::initColors()
 int Movies::execute() 
 {
     char c{'\0'};
-    int pos = 0;
+    int menuIndex{ 0 };
+    int pos{ 0 };
+    auto offset{0}; 
     while(c!='q'){
-        setText(stdscr,pos+2,2," ");
+        setText(stdscr,pos+2+offset,2," ");
+        offset = 0;
         switch(c){
-            IfKeyUp:    { pos--; break; }
-            IfKeyDown:  { pos++; break; }
-            IfKeyConfirm:
-            {    
-                if(pos >= m_menuItems.size()-1) 
-                    return endwin();
-                else
-                { 
-                    m_menuItems.at(pos).fcn(); break; 
+            IfKeyUp:    
+            { 
+                pos--; 
+                if(pos < 0)
+                {    
+                    --menuIndex;
+                    menuIndex = Utils::wrapAround(menuIndex,0,m_menuItems.size()-1);
                 }
+                break; 
+            }
+            IfKeyDown:  
+            { 
+                pos++;
+                if(pos == m_menuItems[menuIndex].size())
+                {    
+                    ++menuIndex;
+                    --pos; // reset due to index wraparound
+                    menuIndex = Utils::wrapAround(menuIndex,0,m_menuItems.size()-1);
+                }
+                break; 
+            }
+            IfKeyConfirm:
+            {     
+                m_menuItems.at(menuIndex).at(pos).fcn(); 
+                break; 
             }
         }
-
-        pos = Utils::wrapAround(pos,0,m_menuItems.size()-1);
-
-        setText(stdscr,pos+2,2,"*");
-        mvchgat(pos+2,2,1,A_STANDOUT,COLOR_PAIR(1),nullptr);
+        for(int i=1; i<=menuIndex; ++i)
+            offset+=m_menuItems[i-1].size();
+        offset+=menuIndex;
+        pos = Utils::wrapAround(pos,0,m_menuItems[menuIndex].size()-1);
+        setText(stdscr,pos+2+offset,2,"*");
+        mvchgat(pos+2+offset,2,1,A_STANDOUT,COLOR_PAIR(1),nullptr);
         box(stdscr,0,0);
+        setText(stdscr,0,1,("Pos: "+std::to_string(pos)+", Off: "+std::to_string(offset)+", Idx: "+std::to_string(menuIndex)+", "+m_menuItems[menuIndex][pos].text).c_str());
         refresh();
         c = getch();
     }
@@ -563,7 +594,7 @@ void Movies::browse()
 
 void Movies::addMovie()
 {
-    auto w{ newwin(10,globalWidth,2,21) };
+    auto w{ newwin(11,globalWidth,2,21) };
     wattron(w,COLOR_PAIR(RED));
     setText(w,1,2,"Name:");
     setText(w,2,2,"Year:");
@@ -594,11 +625,13 @@ void Movies::addMovie()
         setText(w,5,2,"Movie was not added.");
         if(!Utils::validYear(newMovie.year))
             setText(w,6,2,"Invalid year.");
-        if(potentialMatch.has_value())
+        if(newMovie.name.empty())
+            setText(w,7,2,"Empty name.");
+        else if(potentialMatch.has_value())
         {
-            setText(w,7,2,"Already exists: ");
+            setText(w,8,2,"Already exists: ");
             const auto match{potentialMatch.value()};
-            setText(w,8,2,displayString(match).c_str());
+            setText(w,9,2,displayString(match).c_str());
         }
         wrefresh(w);
         getch();   

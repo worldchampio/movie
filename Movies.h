@@ -14,12 +14,8 @@ public:
         std::string name;
         int year{};
     };
-
-
     Movies();
     ~Movies();
-
-
     int execute();
 private:
     struct Score
@@ -59,7 +55,7 @@ private:
     std::unordered_map<int,double> m_ratedMovies;
     std::unordered_map<std::string,int> m_ratingCache;
 
-    const std::vector<MenuItem> m_menuItems;
+    const std::vector<std::vector<MenuItem>> m_menuItems;
 
     template<class T>
     std::string serialize(const T& object)
