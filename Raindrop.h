@@ -4,7 +4,6 @@ class Raindrop{
 public:
     Raindrop(int xPos, bool startAsBlank);
     void update();
-    int rng(int min='!', int max='~');
     void blankSpace(int length);
 private:
     void shiftCharacters();

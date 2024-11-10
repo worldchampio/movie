@@ -3,15 +3,16 @@ Contains a string of random characters,
 corresponding to a single column being displayed onscreen.
 */
 #include "Raindrop.h"
+#include "Utils.h"
 #include <ncurses.h>
 #include <random>
 
 Raindrop::Raindrop(int xPos, bool startAsBlank) :
-    rate{rng(1,100)},
+    rate{Utils::rng(1,100)},
     xPos{xPos}
 {
     if(startAsBlank)
-        blankSpace(rng(1,LINES-LINES/7));
+        blankSpace(Utils::rng(1,LINES-LINES/7));
     str.resize(LINES,' ');
 }
 
@@ -27,12 +28,12 @@ void Raindrop::update(){
 }
 
 void Raindrop::shiftCharacters(){
-    if(rate>=rng(1,100))
+    if(rate>=Utils::rng(1,100))
         return;  
     str.erase(0,1);
     char ch;
     if(blank.empty())
-        ch=char(rng());
+        ch=char(Utils::rng('!','~'));
     else{
         ch=blank[0];
         blank.pop_back();
@@ -43,12 +44,4 @@ void Raindrop::shiftCharacters(){
 void Raindrop::blankSpace(int length){
     if(blank.empty())
         blank.resize(length,' ');
-}
-
-int Raindrop::rng(int min, int max) 
-{
-    std::random_device  dev;
-    std::mt19937        rng(dev());
-    std::uniform_int_distribution<std::mt19937::result_type> dist6(min,max);
-    return dist6(rng);
 }
