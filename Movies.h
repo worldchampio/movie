@@ -1,9 +1,10 @@
+#include "Utils.h"
 #include "ncurses.h"
 #include <string>
 #include <vector>
 #include <unordered_map>
 #include <sstream>
-#include "Utils.h"
+#include <fstream>
 
 class Movies{
 public:
@@ -40,6 +41,7 @@ private:
     void snake();
     void gameOfLife();
     void graph();
+    void list();
     void reset();
     void shutdown();
 
@@ -59,6 +61,15 @@ private:
     const std::vector<std::string> m_titles;
     
     int m_exitCode{0};
+
+    template<class T>
+    void serializeToFile(const std::string& fileName, const std::vector<T>& data)
+    {
+        auto file{std::fstream{fileName,std::ios_base::app}};
+        for(const auto& object : data)
+            file << serialize(object);
+        file.close();
+    }
 
     template<class T>
     std::string serialize(const T& object)

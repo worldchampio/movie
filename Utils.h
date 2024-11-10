@@ -24,12 +24,31 @@ namespace Utils
     std::pair<int,int> getTwoRngs(int min, int max);
     std::vector<std::string> tokenize(const std::string& str, char delimiter = ',');
     std::string timeStamp();
+    std::string storage(std::size_t bytes);
+
+    template<class T>
+    std::string typeName(const T& value) 
+    {
+        const auto rawName{std::string{typeid(value).name()}};
+        if(rawName.find("string")!=std::string::npos)
+            return "string";
+        else if(rawName=="c")
+            return "char";
+        else if(rawName=="i")
+            return "integer";
+        else if(rawName=="f")
+            return "float";
+        else if(rawName=="d")
+            return "double";
+
+        return rawName;
+    }
 
     template<class T>
     class Queue
     {
     public:
-        Queue(int size) : m_size{size} {}
+        Queue(std::size_t size) : m_size{size} {}
         void add(T element)
         {
             buf.push_back(element);
@@ -45,6 +64,6 @@ namespace Utils
         auto size() { return m_size; }
     private:
         std::vector<T> buf;
-        int m_size{0};
+        std::size_t m_size{0};
     };
 }

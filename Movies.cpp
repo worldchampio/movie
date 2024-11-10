@@ -1,8 +1,11 @@
 #include "Movies.h"
 #include "DigitalRain.h"
+#include "List.h"
 #include <fstream>
 #include <iostream>
 #include <thread>
+
+using namespace std::chrono_literals;
 
 #define IfKeyUp case KEY_UP: case 'W': case 'w'
 #define IfKeyDown case KEY_DOWN: case 'S': case 's'
@@ -70,7 +73,8 @@ Movies::Movies() :
             cleanup(stdscr,LINES,COLS);
             createMenu();
             return 1;
-        }}
+        }},
+        {"List",            [this]{ list(); return 1; }}
     },
     {
         {"Exit",            []{ return 0; }}
@@ -91,12 +95,8 @@ Movies::~Movies()
 {
     std::filesystem::remove(Filename);
     std::filesystem::remove(HighscoreFilename);
-    auto moviefile{std::fstream{Filename,std::ios_base::app}};
-    auto highscoreFile{std::fstream{HighscoreFilename,std::ios_base::app}};
-    for(const auto& movie : m_movies) moviefile << serialize(movie);
-    for(const auto& score : m_scores) highscoreFile << serialize(score);
-    moviefile.close();
-    highscoreFile.close();
+    serializeToFile(Filename, m_movies);
+    serializeToFile(HighscoreFilename, m_scores);
     shutdown();
 }
 
@@ -446,8 +446,53 @@ void Movies::graph()
     timeout(-1);
     delwin(w);
 }
+void Movies::list()
+{
+    constexpr auto xStart{21};
+    const auto width{COLS-xStart-3};
+    const auto height{LINES-2};
+    auto w{ newwin(height,width,1,xStart+2)};
+    wattron(w,COLOR_PAIR(MAGENTA));
+    wattron(w,A_BOLD);
+    List l{4};
+    auto refreshData{[this, w](const decltype(l)& li)
+    {
+        std::stringstream ss;
+        li.print(ss);
+        const auto tokens{Utils::tokenize(ss.str(),'\n')};
+        for(int i=0; i<tokens.size(); ++i)
+            setText(w,1+i,4,tokens[i].c_str());
+        box(w,0,0);
+        wrefresh(w);
+    }};
+    refreshData(l);
+    char c{'\0'};
+    while(c!='q')
+    {
+        c = getch();
+        switch(c)
+        {
+        case 'a':
+            l.append(Utils::rng(1,1000));
+            break;
+        case 'd':
+            if(l.size()-1 > 0) // dont delete root
+                l.remove(l.size()-1);
+            break;
+        }
+        const auto num{static_cast<int>(c-'0')};
+        if(num >= 1 && num <= 9 && num <= l.size()-1)
+            l.remove(num);
+        cleanup(w,height,width);
+        refreshData(l);
+    }
+    l.clear();
+    cleanup(w,height,width);
+    refreshData(l);
+    std::this_thread::sleep_for(1s);
+}
 
-void Movies::reset() 
+void Movies::reset()
 {
     constexpr auto xStart{21};
     const auto width{COLS-xStart-3};
@@ -501,7 +546,7 @@ void Movies::reset()
                         setText(w,count++,12,("Restored "+element.name+" rating to "+std::to_string(element.rating).substr(0,6)).c_str());
                         wrefresh(w);
                     }
-                    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+                    std::this_thread::sleep_for(20ms);
                 }            
             break;
         }
@@ -523,7 +568,7 @@ void Movies::shutdown()
         for(int x=0; x<COLS; ++x)
             setText(stdscr,y,x," ");
         refresh();
-        std::this_thread::sleep_for(std::chrono::milliseconds(15));
+        std::this_thread::sleep_for(15ms);
     }
     m_exitCode = endwin();
 }

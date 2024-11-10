@@ -4,6 +4,13 @@
 #include <sstream>
 #include <chrono>
 
+namespace
+{
+    constexpr auto Kb{1024.0};
+    constexpr auto Mb{Kb*Kb};
+    constexpr auto Gb{Kb*Mb};
+}
+
 auto getYear()
 {
     const std::chrono::time_point now{std::chrono::system_clock::now()};
@@ -85,6 +92,20 @@ std::string Utils::timeStamp()
     auto end = std::chrono::system_clock::now();
     std::time_t end_time = std::chrono::system_clock::to_time_t(end);
     return std::ctime(&end_time);
+}
+
+std::string Utils::storage(std::size_t bytes)
+{
+    std::stringstream ss;
+    if(bytes >= Gb)
+        ss << bytes/Gb << " GB";
+    else if(bytes >= Mb)
+        ss << bytes/Mb << " MB";
+    else if(bytes >= Kb)
+        ss << bytes/Kb << " KB";
+    else
+        ss << bytes << " B";
+    return ss.str();
 }
 
 Utils::Timer::Timer() : 
